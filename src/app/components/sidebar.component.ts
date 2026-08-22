@@ -35,14 +35,6 @@ import { TokenNodeComponent } from './token-node.component';
           <span>JSON</span>
         </button>
       </div>
-      <div class="px-4 py-2 border-b border-gray-800 bg-gray-900 z-10 sticky top-16.25 flex items-center space-x-2">
-         <span class="text-xs text-gray-500 font-medium">File:</span>
-         <select class="flex-1 bg-gray-800 text-sm text-gray-300 border border-gray-700 rounded p-1 outline-none focus:border-blue-500"
-                 [ngModel]="tokenService.activeFileName()"
-                 (ngModelChange)="onFileSelect($event)">
-            <option *ngFor="let file of tokenService.files()" [value]="file.name">{{ file.name }}</option>
-         </select>
-      </div>
       <div class="flex-1 overflow-y-auto custom-scrollbar p-2">
         <app-token-node
           [node]="tokenService.groupedTokens()"
@@ -56,10 +48,6 @@ import { TokenNodeComponent } from './token-node.component';
 })
 export class SidebarComponent {
   tokenService = inject(TokenService);
-
-  onFileSelect(fileName: string) {
-    this.tokenService.setActiveFileName(fileName);
-  }
 
   onSelectToken(event: { path: string[] }) {
     this.tokenService.setSelectedTokenPath(event.path);
