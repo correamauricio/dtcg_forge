@@ -180,6 +180,79 @@ export class TokenStateService {
     this._activeFileName.set(name);
   }
 
+  deleteFile(name: string) {
+    const currentFiles = this.files();
+    const newFiles = currentFiles.filter(f => f.name !== name);
+    this._files.set(newFiles);
+
+    if (this.activeFileName() === name) {
+      this._activeFileName.set(newFiles.length > 0 ? newFiles[0].name : '');
+    }
+
+    if (this._disabledFileNames().has(name)) {
+      this._disabledFileNames.update(prev => {
+        const next = new Set(prev);
+        next.delete(name);
+        return next;
+      });
+    }
+
+    this._selectedVariants.update(prev => {
+      const next = { ...prev };
+      let changed = false;
+      for (const [groupId, activeFile] of Object.entries(next)) {
+        if (activeFile === name) {
+          delete next[groupId];
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }
+
+  renameFile(oldName: string, newName: string): boolean {
+    const trimmed = (newName || '').trim();
+    if (!trimmed) return false;
+    if (oldName === trimmed) return true;
+
+    const currentFiles = this.files();
+    const existingIndex = currentFiles.findIndex(f => f.name === oldName);
+    if (existingIndex === -1) return false;
+
+    const collision = currentFiles.some(f => f.name === trimmed);
+    if (collision) return false;
+
+    const newFiles = currentFiles.map(f => f.name === oldName ? { ...f, name: trimmed } : f);
+    this._files.set(newFiles);
+
+    if (this.activeFileName() === oldName) {
+      this._activeFileName.set(trimmed);
+    }
+
+    if (this._disabledFileNames().has(oldName)) {
+      this._disabledFileNames.update(prev => {
+        const next = new Set(prev);
+        next.delete(oldName);
+        next.add(trimmed);
+        return next;
+      });
+    }
+
+    this._selectedVariants.update(prev => {
+      let changed = false;
+      const next = { ...prev };
+      for (const [groupId, activeFile] of Object.entries(next)) {
+        if (activeFile === oldName) {
+          next[groupId] = trimmed;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+
+    return true;
+  }
+
   toggleJsonEditor() {
     this._isJsonEditorOpen.update(v => !v);
   }

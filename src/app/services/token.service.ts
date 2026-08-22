@@ -103,6 +103,20 @@ export class TokenService {
     this.history.execute(command);
   }
 
+  deleteFile(name: string) {
+    const command = new StateChangeCommand(this.state, () => {
+      this.state.deleteFile(name);
+    });
+    this.history.execute(command);
+  }
+
+  renameFile(oldName: string, newName: string) {
+    const command = new StateChangeCommand(this.state, () => {
+      this.state.renameFile(oldName, newName);
+    });
+    this.history.execute(command);
+  }
+
   toggleJsonEditor() {
     this.state.toggleJsonEditor();
   }
