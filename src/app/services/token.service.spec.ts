@@ -36,7 +36,9 @@ describe('TokenService (Facade & Mutation Orchestration via Command Pattern)', (
       setActiveFileName: vi.fn(),
       toggleJsonEditor: vi.fn(),
       setJsonEditorOpen: vi.fn(),
-      setSelectedTokenPath: vi.fn()
+      setSelectedTokenPath: vi.fn(),
+      deleteFile: vi.fn(),
+      renameFile: vi.fn()
     };
 
     TestBed.configureTestingModule({
@@ -101,6 +103,26 @@ describe('TokenService (Facade & Mutation Orchestration via Command Pattern)', (
 
     passedCommand.execute();
     expect(stateServiceMock.addFile).toHaveBeenCalledWith('new-file.json', { color: {} });
+  });
+
+  it('should route deleteFile through HistoryService using a StateChangeCommand', () => {
+    service.deleteFile('old-file.json');
+
+    expect(historyServiceMock.execute).toHaveBeenCalledTimes(1);
+    const passedCommand = historyServiceMock.execute.mock.calls[0][0];
+
+    passedCommand.execute();
+    expect(stateServiceMock.deleteFile).toHaveBeenCalledWith('old-file.json');
+  });
+
+  it('should route renameFile through HistoryService using a StateChangeCommand', () => {
+    service.renameFile('old.json', 'new.json');
+
+    expect(historyServiceMock.execute).toHaveBeenCalledTimes(1);
+    const passedCommand = historyServiceMock.execute.mock.calls[0][0];
+
+    passedCommand.execute();
+    expect(stateServiceMock.renameFile).toHaveBeenCalledWith('old.json', 'new.json');
   });
 
   it('should delegate UI state methods directly to TokenStateService without HistoryService', () => {

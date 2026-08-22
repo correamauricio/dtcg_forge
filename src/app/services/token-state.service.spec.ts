@@ -149,4 +149,72 @@ describe('TokenStateService', () => {
     const file = service.files().find(f => f.name === 'existing.json');
     expect(file?.content).toEqual({ new: 'content' });
   });
+
+  describe('deleteFile', () => {
+    it('should remove file and update activeFileName to remaining file if active file was deleted', () => {
+      service.setActiveFileName('semantics.json');
+      service.deleteFile('semantics.json');
+
+      expect(service.files().find(f => f.name === 'semantics.json')).toBeUndefined();
+      expect(service.files().length).toBe(2);
+      expect(service.activeFileName()).toBe('primitives.json');
+    });
+
+    it('should set activeFileName to empty string if all files are deleted', () => {
+      service.deleteFile('primitives.json');
+      service.deleteFile('semantics.json');
+      service.deleteFile('semantics-dark.json');
+
+      expect(service.files().length).toBe(0);
+      expect(service.activeFileName()).toBe('');
+    });
+
+    it('should retain activeFileName if another non-active file is deleted', () => {
+      service.setActiveFileName('semantics.json');
+      service.deleteFile('primitives.json');
+
+      expect(service.activeFileName()).toBe('semantics.json');
+    });
+
+    it('should clean up disabledFileNames and selectedVariants when file is deleted', () => {
+      service.toggleFileDisabled('semantics-dark.json');
+      service.selectVariant('group-1', 'semantics-dark.json');
+      expect(service.disabledFileNames().has('semantics-dark.json')).toBe(true);
+      expect(service.selectedVariants()['group-1']).toBe('semantics-dark.json');
+
+      service.deleteFile('semantics-dark.json');
+      expect(service.disabledFileNames().has('semantics-dark.json')).toBe(false);
+      expect(service.selectedVariants()['group-1']).toBeUndefined();
+    });
+  });
+
+  describe('renameFile', () => {
+    it('should rename file and update activeFileName if active file was renamed', () => {
+      service.setActiveFileName('semantics.json');
+      const success = service.renameFile('semantics.json', 'tokens-semantic.json');
+
+      expect(success).toBe(true);
+      expect(service.files().find(f => f.name === 'tokens-semantic.json')).toBeDefined();
+      expect(service.files().find(f => f.name === 'semantics.json')).toBeUndefined();
+      expect(service.activeFileName()).toBe('tokens-semantic.json');
+    });
+
+    it('should update disabledFileNames and selectedVariants mappings when file is renamed', () => {
+      service.toggleFileDisabled('semantics-dark.json');
+      service.selectVariant('group-1', 'semantics-dark.json');
+
+      service.renameFile('semantics-dark.json', 'dark-theme.json');
+
+      expect(service.disabledFileNames().has('semantics-dark.json')).toBe(false);
+      expect(service.disabledFileNames().has('dark-theme.json')).toBe(true);
+      expect(service.selectedVariants()['group-1']).toBe('dark-theme.json');
+    });
+
+    it('should reject renaming to an existing file name, empty string, or non-existent old file', () => {
+      expect(service.renameFile('primitives.json', 'semantics.json')).toBe(false);
+      expect(service.renameFile('primitives.json', '')).toBe(false);
+      expect(service.renameFile('primitives.json', '   ')).toBe(false);
+      expect(service.renameFile('non-existent.json', 'new-name.json')).toBe(false);
+    });
+  });
 });
