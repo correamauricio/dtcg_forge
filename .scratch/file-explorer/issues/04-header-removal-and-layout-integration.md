@@ -5,10 +5,10 @@ Remove the legacy `HeaderComponent` and the old file dropdown `<select>` from `S
 
 **Blocked by:** 03: Elevated Variant Grouping and Active Preview Eye Switching
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] `HeaderComponent` is removed from the application and template.
-- [ ] `SidebarComponent` removes the redundant `<select>` file dropdown while preserving token inspection and JSON editor toggle.
-- [ ] `FileExplorerComponent` renders a footer showing duplicate/conflict messages from `tokenService.duplicateTokensInfo()`.
-- [ ] `App` template coordinates the 4-column responsive layout without a top header.
-- [ ] All unit and integration test suites pass with 100% success.
+- [x] `HeaderComponent` is removed from the application and template.
+- [x] `SidebarComponent` removes the redundant `<select>` file dropdown while preserving token inspection and JSON editor toggle.
+- [x] `FileExplorerComponent` renders a footer showing duplicate/conflict messages from `tokenService.duplicateTokensInfo()`.
+- [x] `App` template coordinates the 4-column responsive layout without a top header.
+- [x] All unit and integration test suites pass with 100% success.

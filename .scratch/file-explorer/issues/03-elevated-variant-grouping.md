@@ -5,10 +5,10 @@ Detect and group variant files in elevated surface containers within the File Ex
 
 **Blocked by:** 02: File Explorer Component with Drag & Drop and File Actions
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] Variant files sharing overlapping token paths are visually clustered inside an elevated surface container (higher surface color / card styling) within the File Explorer.
-- [ ] The active preview variant displays an illuminated Eye icon (👁️), while inactive variants in the group display a dim/outline Eye icon.
-- [ ] Clicking a variant row selects it for editing AND updates the active preview variant.
-- [ ] Clicking specifically on the Eye icon updates the active preview variant without changing the file currently open in the token inspector.
-- [ ] Unit tests in `file-explorer.component.spec.ts` verify variant grouping container styles and independent eye-click preview switching behavior.
+- [x] Variant files sharing overlapping token paths are visually clustered inside an elevated surface container (higher surface color / card styling) within the File Explorer.
+- [x] The active preview variant displays an illuminated Eye icon (👁️), while inactive variants in the group display a dim/outline Eye icon.
+- [x] Clicking a variant row selects it for editing AND updates the active preview variant.
+- [x] Clicking specifically on the Eye icon updates the active preview variant without changing the file currently open in the token inspector.
+- [x] Unit tests in `file-explorer.component.spec.ts` verify variant grouping container styles and independent eye-click preview switching behavior.

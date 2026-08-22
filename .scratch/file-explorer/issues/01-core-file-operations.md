@@ -5,9 +5,9 @@ Enable renaming and deleting Token Files within the application state and comman
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] `TokenStateService` implements `deleteFile(name: string)` that removes the file, cleans references, and updates `activeFileName` if the deleted file was active.
-- [ ] `TokenStateService` implements `renameFile(oldName: string, newName: string)` with validation against empty or colliding file names.
-- [ ] `TokenService` exposes `deleteFile` and `renameFile` wrapped in `StateChangeCommand` for history (undo/redo) tracking.
-- [ ] Unit tests in `token.service.spec.ts` verify deletion, renaming, active fallback, and undo/redo behavior.
+- [x] `TokenStateService` implements `deleteFile(name: string)` that removes the file, cleans references, and updates `activeFileName` if the deleted file was active.
+- [x] `TokenStateService` implements `renameFile(oldName: string, newName: string)` with validation against empty or colliding file names.
+- [x] `TokenService` exposes `deleteFile` and `renameFile` wrapped in `StateChangeCommand` for history (undo/redo) tracking.
+- [x] Unit tests in `token.service.spec.ts` verify deletion, renaming, active fallback, and undo/redo behavior.
