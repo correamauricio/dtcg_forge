@@ -23,3 +23,12 @@ _Avoid_: Current theme, previewed file
 **File Explorer**:
 The dedicated left sidebar responsible for managing the project's collection of Token Files, including drag & drop import, file selection, renaming, deletion, variant grouping, status footer, and export.
 _Avoid_: File selector, file picker dropdown
+
+**Token Search**:
+The interactive search input and filtering mechanism in the token sidebar that queries and filters tokens within the Active File by path, group name, value, or token type.
+_Avoid_: Token query, token finder
+
+**Filtered Token Tree**:
+The hierarchical token tree representation where non-matching branches are pruned while preserving ancestor groups containing matching tokens.
+_Avoid_: Filtered list, search tree
+
