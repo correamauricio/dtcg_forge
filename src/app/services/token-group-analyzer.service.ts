@@ -8,45 +8,34 @@ export class TokenGroupAnalyzerService {
   constructor() { }
 
   /**
-   * Returns true if all leaf tokens within this group are of type 'color'
+   * Returns true if all immediate children within this group are leaf tokens of type 'color',
    * and none of them are aliases (strings containing '{' and '}').
+   * If any child is a nested group, it returns false.
    */
   isPrimitiveColorGroup(groupNode: any): boolean {
     if (!groupNode || typeof groupNode !== 'object' || Object.keys(groupNode).length === 0) {
       return false;
     }
 
-    let hasLeaves = false;
+    const keys = Object.keys(groupNode).filter(k => k !== '_token');
+    if (keys.length === 0) return false;
 
-    const checkNode = (node: any): boolean => {
-      // If it's a leaf token (has _token)
-      if (node && node._token) {
-        hasLeaves = true;
-        const token = node._token;
-        if (token.type !== 'color') {
-          return false;
-        }
-        if (typeof token.value === 'string' && /^\{[^}]+\}$/.test(token.value.trim())) {
-          return false; // It's an alias
-        }
-        return true;
+    for (const key of keys) {
+      const child = groupNode[key];
+      // If it doesn't have _token, it's a nested group
+      if (!child || !child._token) {
+        return false;
       }
-
-      // If it's a group, recurse
-      const keys = Object.keys(node).filter(k => k !== '_token');
-      if (keys.length === 0) {
-        return true; // Empty sub-group doesn't violate, but the root needs at least one leaf
+      
+      const token = child._token;
+      if (token.type !== 'color') {
+        return false;
       }
-
-      for (const key of keys) {
-        if (!checkNode(node[key])) {
-          return false;
-        }
+      if (typeof token.value === 'string' && /^\{[^}]+\}$/.test(token.value.trim())) {
+        return false; // It's an alias
       }
-      return true;
-    };
-
-    const result = checkNode(groupNode);
-    return result && hasLeaves;
+    }
+    
+    return true;
   }
 }

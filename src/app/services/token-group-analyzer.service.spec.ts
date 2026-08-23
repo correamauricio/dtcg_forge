@@ -45,16 +45,13 @@ describe('TokenGroupAnalyzerService', () => {
       expect(service.isPrimitiveColorGroup(groupNode)).toBe(false);
     });
 
-    it('should handle nested groups properly (return true if all nested leaves are primitive colors)', () => {
+    it('should return false for nested groups (must be a flat group of colors)', () => {
       const groupNode = {
-        light: {
-          50: { _token: { type: 'color', value: '#fff', originalPath: ['light', '50'] } }
-        },
-        dark: {
-          50: { _token: { type: 'color', value: '#000', originalPath: ['dark', '50'] } }
+        blue: {
+          500: { _token: { type: 'color', value: '#0055ff' } }
         }
       };
-      expect(service.isPrimitiveColorGroup(groupNode)).toBe(true);
+      expect(service.isPrimitiveColorGroup(groupNode)).toBe(false);
     });
   });
 });
