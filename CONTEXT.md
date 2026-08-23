@@ -32,3 +32,10 @@ _Avoid_: Token query, token finder
 The hierarchical token tree representation where non-matching branches are pruned while preserving ancestor groups containing matching tokens.
 _Avoid_: Filtered list, search tree
 
+**Palette Generator**:
+A script or algorithm that calculates and generates a full set of color tokens (a palette) based on a single seed color.
+_Avoid_: Auto-color tool, theme maker
+
+**Primitive Token Group**:
+A Token Group where no token inside it is an alias; all tokens represent explicit, hardcoded values.
+_Avoid_: Base tokens group, hardcoded group
