@@ -7,10 +7,11 @@ Deliver the interactive user interface in `SidebarComponent`: a search input bar
 
 **GitHub Issue:** https://github.com/correamauricio/dtcg_forge/issues/8
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] Search bar integrated into `SidebarComponent` with search icon, input field, and clear button.
-- [ ] Keyboard shortcut `Escape` clears the input and resets tree filter.
-- [ ] Result counter badge displays match count when search is active.
-- [ ] Empty State rendered when `filteredTokenCount === 0` and query is active.
-- [ ] Unit tests in `sidebar.component.spec.ts` verify input binding, query dispatch, clear actions, shortcut handling, and empty state rendering.
+- [x] Search bar integrated into `SidebarComponent` with search icon, input field, and clear button.
+- [x] Keyboard shortcut `Escape` clears the input and resets tree filter.
+- [x] Result counter badge displays match count when search is active.
+- [x] Empty State rendered when `filteredTokenCount === 0` and query is active.
+- [x] Unit tests in `sidebar.component.spec.ts` verify input binding, query dispatch, clear actions, shortcut handling, and empty state rendering.
+
