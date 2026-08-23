@@ -103,10 +103,33 @@ export class PrimitiveGroupNodeComponent {
     this.selectToken.emit({ path: token ? token.originalPath : path });
   }
 
-  onColorChange(path: string[], hexValue: string) {
-    const key = path[path.length - 1];
-    const token = this.getToken(key);
-    this.updateToken.emit({ path: token ? token.originalPath : path, value: hexValue });
+  onColorChange(path: string[], value: string) {
+    const seedName = path[path.length - 1];
+    const seedToken = this.getToken(seedName);
+    
+    // We must use the originalPath of the seed token to know the full absolute path from the root
+    // because path here only contains [nodeName, seedName].
+    const basePath = seedToken ? seedToken.originalPath.slice(0, -1) : path.slice(0, -1);
+    
+    try {
+      const generatedGroup = this.paletteService.generate(value, seedName, this.node);
+      
+      // Emit update for each generated color
+      for (const [key, generatedData] of Object.entries(generatedGroup)) {
+        const updatePath = [...basePath, key];
+        
+        // Handle both formats: script returning { value: '#fff' } or just '#fff'
+        const colorValue = typeof generatedData === 'object' && generatedData !== null && 'value' in generatedData
+          ? generatedData.value
+          : generatedData;
+
+        this.updateToken.emit({ path: updatePath, value: colorValue });
+      }
+    } catch (e) {
+      console.error('Failed to generate palette:', e);
+      // Fallback: just emit the single color change if generation fails
+      this.updateToken.emit({ path: [...basePath, seedName], value });
+    }
   }
 
   formatToHex(val: string): string {
