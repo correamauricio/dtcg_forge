@@ -25,6 +25,9 @@ describe('TokenService (Facade & Mutation Orchestration via Command Pattern)', (
       duplicateTokensInfo: signal([]),
       isJsonEditorOpen: signal(false),
       selectedTokenPath: signal([]),
+      searchQuery: signal(''),
+      setSearchQuery: vi.fn((q: string) => stateServiceMock.searchQuery.set(q)),
+      clearSearchQuery: vi.fn(() => stateServiceMock.searchQuery.set('')),
       addFile: vi.fn(),
       updateTokenValue: vi.fn(),
       selectVariant: vi.fn(),
@@ -199,4 +202,52 @@ describe('TokenService (Facade & Mutation Orchestration via Command Pattern)', (
     const grouped = service.groupedTokens();
     expect(grouped['color']['primary']._token).toBeDefined();
   });
+
+  it('should filter groupedTokens and flatTokens when searchQuery is active and prune non-matching branches', () => {
+    stateServiceMock.files.set([
+      {
+        name: 'tokens.json',
+        content: {
+          color: {
+            brand: {
+              primary: { $value: '#0055ff', $type: 'color' },
+              secondary: { $value: '#ff5500', $type: 'color' }
+            },
+            neutral: {
+              white: { $value: '#ffffff', $type: 'color' }
+            }
+          },
+          spacing: {
+            sm: { $value: '8px', $type: 'dimension' }
+          }
+        }
+      }
+    ]);
+    stateServiceMock.activeFileName.set('tokens.json');
+    stateServiceMock.searchQuery.set('primary');
+    TestBed.flushEffects();
+
+    expect(service.totalTokenCount()).toBe(4);
+    expect(service.filteredTokenCount()).toBe(1);
+
+    const filtered = service.filteredFlatTokens();
+    expect(filtered.length).toBe(1);
+    expect(filtered[0].path).toBe('color.brand.primary');
+
+    const grouped = service.groupedTokens();
+    expect(grouped['color']).toBeDefined();
+    expect(grouped['color']['brand']).toBeDefined();
+    expect(grouped['color']['brand']['primary']._token).toBeDefined();
+    expect(grouped['color']['neutral']).toBeUndefined();
+    expect(grouped['spacing']).toBeUndefined();
+  });
+
+  it('should delegate setSearchQuery and clearSearchQuery to TokenStateService', () => {
+    service.setSearchQuery('neutral');
+    expect(stateServiceMock.setSearchQuery).toHaveBeenCalledWith('neutral');
+
+    service.clearSearchQuery();
+    expect(stateServiceMock.clearSearchQuery).toHaveBeenCalled();
+  });
 });
+

@@ -27,6 +27,9 @@ export class TokenStateService {
   private _disabledFileNames = signal<Set<string>>(new Set());
   disabledFileNames = this._disabledFileNames.asReadonly();
 
+  private _searchQuery = signal<string>('');
+  searchQuery = this._searchQuery.asReadonly();
+
   constructor() {
     this.loadPreset();
   }
@@ -267,6 +270,14 @@ export class TokenStateService {
 
   setSelectedTokenPath(path: string[] | null) {
     this._selectedTokenPath.set(path);
+  }
+
+  setSearchQuery(query: string) {
+    this._searchQuery.set(query);
+  }
+
+  clearSearchQuery() {
+    this._searchQuery.set('');
   }
 
   createMemento(): TokenStateMemento {

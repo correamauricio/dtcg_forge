@@ -7,8 +7,9 @@ Enable reactive search filtering in the application state and facade service. `T
 
 **GitHub Issue:** https://github.com/correamauricio/dtcg_forge/issues/7
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] `TokenStateService` manages `searchQuery` signal with `setSearchQuery(query)` and `clearSearchQuery()`.
-- [ ] `TokenService` exposes `searchQuery`, `setSearchQuery`, `clearSearchQuery`, `filteredFlatTokens`, pruned `groupedTokens`, `totalTokenCount`, and `filteredTokenCount`.
-- [ ] Unit tests in `token-state.service.spec.ts` and `token.service.spec.ts` verify query updates, reactive tree pruning, fallback to full list when query is empty, and match counters.
+- [x] `TokenStateService` manages `searchQuery` signal with `setSearchQuery(query)` and `clearSearchQuery()`.
+- [x] `TokenService` exposes `searchQuery`, `setSearchQuery`, `clearSearchQuery`, `filteredFlatTokens`, pruned `groupedTokens`, `totalTokenCount`, and `filteredTokenCount`.
+- [x] Unit tests in `token-state.service.spec.ts` and `token.service.spec.ts` verify query updates, reactive tree pruning, fallback to full list when query is empty, and match counters.
+

@@ -217,4 +217,21 @@ describe('TokenStateService', () => {
       expect(service.renameFile('non-existent.json', 'new-name.json')).toBe(false);
     });
   });
+
+  describe('searchQuery', () => {
+    it('should initialize with empty string', () => {
+      expect(service.searchQuery()).toBe('');
+    });
+
+    it('should update searchQuery when setSearchQuery is called', () => {
+      service.setSearchQuery('brand.primary');
+      expect(service.searchQuery()).toBe('brand.primary');
+    });
+
+    it('should reset searchQuery when clearSearchQuery is called', () => {
+      service.setSearchQuery('color');
+      service.clearSearchQuery();
+      expect(service.searchQuery()).toBe('');
+    });
+  });
 });

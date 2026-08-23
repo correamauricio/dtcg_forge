@@ -1,6 +1,7 @@
 import { Injectable, computed, inject } from '@angular/core';
 import { TokenStateService } from './token-state.service';
 import { extractFileTokenPaths, resolveAllFlatTokens, resolveFileFlatTokens, buildGroupedTokens } from '../utils/token-parser.util';
+import { searchTokens } from '../utils/token-search.util';
 import { detectVariantGroups, computeActiveFiles } from '../utils/variant-detection.util';
 import { generateCssVariables } from '../utils/css-generator.util';
 import { HistoryService } from './history.service';
@@ -21,6 +22,7 @@ export class TokenService {
   duplicateTokensInfo = this.state.duplicateTokensInfo;
   selectedVariants = this.state.selectedVariants;
   disabledFileNames = this.state.disabledFileNames;
+  searchQuery = this.state.searchQuery;
 
   // Computed Values using Pure Functions (Utils)
   rawTokens = computed(() => {
@@ -59,12 +61,24 @@ export class TokenService {
      return resolveFileFlatTokens(fileTokens, this.allFlatTokens());
   });
 
+  filteredFlatTokens = computed(() => {
+     return searchTokens(this.flatTokens(), this.searchQuery());
+  });
+
   cssVariables = computed(() => {
      return generateCssVariables(this.allFlatTokens());
   });
 
   groupedTokens = computed(() => {
-     return buildGroupedTokens(this.flatTokens());
+     return buildGroupedTokens(this.filteredFlatTokens());
+  });
+
+  totalTokenCount = computed(() => {
+     return this.flatTokens().length;
+  });
+
+  filteredTokenCount = computed(() => {
+     return this.filteredFlatTokens().length;
   });
 
   // Facade Methods for Mutations (delegating to TokenStateService and HistoryService)
@@ -131,5 +145,13 @@ export class TokenService {
 
   setSelectedTokenPath(path: string[] | null) {
     this.state.setSelectedTokenPath(path);
+  }
+
+  setSearchQuery(query: string) {
+    this.state.setSearchQuery(query);
+  }
+
+  clearSearchQuery() {
+    this.state.clearSearchQuery();
   }
 }
