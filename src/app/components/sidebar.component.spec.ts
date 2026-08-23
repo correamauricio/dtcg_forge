@@ -6,6 +6,15 @@ import { TokenService } from '../services/token.service';
 import { signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
+vi.mock('@material/material-color-utilities', () => {
+  return {
+    themeFromSourceColor: vi.fn(),
+    argbFromHex: vi.fn(),
+    hexFromArgb: (v: number) => '#000000',
+    TonalPalette: { fromInt: vi.fn() }
+  };
+});
+
 describe('SidebarComponent', () => {
   let component: SidebarComponent;
   let fixture: ComponentFixture<SidebarComponent>;

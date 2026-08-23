@@ -5,6 +5,8 @@ import { FlatToken } from '../models/token.model';
 import { PrimitiveNodeComponent } from './nodes/primitive-node.component';
 import { ColorNodeComponent } from './nodes/color-node.component';
 import { CompositeNodeComponent } from './nodes/composite-node.component';
+import { PrimitiveGroupNodeComponent } from './primitive-group-node.component';
+import { TokenGroupAnalyzerService } from '../services/token-group-analyzer.service';
 
 @Component({
   selector: 'app-token-node',
@@ -14,7 +16,8 @@ import { CompositeNodeComponent } from './nodes/composite-node.component';
     FormsModule,
     PrimitiveNodeComponent,
     ColorNodeComponent,
-    CompositeNodeComponent
+    CompositeNodeComponent,
+    PrimitiveGroupNodeComponent
   ],
   template: `
     <div [class.pl-2]="depth > 0" [class.border-l]="depth > 0" class="border-gray-800/80 ml-1">
@@ -52,23 +55,33 @@ import { CompositeNodeComponent } from './nodes/composite-node.component';
         
         <!-- Token Group -->
         @if (hasChildren(node, key)) {
-          <div class="mt-0.5">
-            @if (!isToken(node, key)) {
-              <div class="sticky h-6.5 px-2 font-bold text-gray-400 text-[10px] uppercase tracking-wider flex items-center space-x-1.5 bg-gray-900 border-b border-gray-800 shadow-xs -mx-1"
-                   [style.top.px]="depth * 26"
-                   [style.z-index]="30 - depth">
-                <svg class="w-3 h-3 text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                <span class="truncate font-mono" [title]="key">{{ key }}</span>
-              </div>
-            }
-            <app-token-node
+          @if (isPrimitiveColorGroup(node[key])) {
+            <app-primitive-group-node
               [node]="node[key]"
-              [selectedPath]="selectedPath"
+              [nodeName]="key"
               [depth]="depth + 1"
               (selectToken)="selectToken.emit($event)"
               (updateToken)="updateToken.emit($event)">
-            </app-token-node>
-          </div>
+            </app-primitive-group-node>
+          } @else {
+            <div class="mt-0.5">
+              @if (!isToken(node, key)) {
+                <div class="sticky h-6.5 px-2 font-bold text-gray-400 text-[10px] uppercase tracking-wider flex items-center space-x-1.5 bg-gray-900 border-b border-gray-800 shadow-xs -mx-1"
+                     [style.top.px]="depth * 26"
+                     [style.z-index]="30 - depth">
+                  <svg class="w-3 h-3 text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                  <span class="truncate font-mono" [title]="key">{{ key }}</span>
+                </div>
+              }
+              <app-token-node
+                [node]="node[key]"
+                [selectedPath]="selectedPath"
+                [depth]="depth + 1"
+                (selectToken)="selectToken.emit($event)"
+                (updateToken)="updateToken.emit($event)">
+              </app-token-node>
+            </div>
+          }
         }
         
       }
@@ -82,6 +95,12 @@ export class TokenNodeComponent {
 
   @Output() selectToken = new EventEmitter<{ path: string[] }>();
   @Output() updateToken = new EventEmitter<{ path: string[], value: any }>();
+
+  constructor(private analyzer: TokenGroupAnalyzerService) {}
+
+  isPrimitiveColorGroup(groupNode: any): boolean {
+    return this.analyzer.isPrimitiveColorGroup(groupNode);
+  }
 
   getKeys(node: any): string[] {
     return Object.keys(node || {}).filter(k => k !== '_token');
@@ -109,9 +128,7 @@ export class TokenNodeComponent {
     this.updateToken.emit(event);
   }
 
-  isAlias(val: any): boolean {
-    return typeof val === 'string' && /^\{[^}]+\}$/.test(val.trim());
-  }
+
 
   getNodeType(token: FlatToken): string {
     if (token.type === 'color') return 'color';
