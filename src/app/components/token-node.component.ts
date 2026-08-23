@@ -128,9 +128,7 @@ export class TokenNodeComponent {
     this.updateToken.emit(event);
   }
 
-  isAlias(val: any): boolean {
-    return typeof val === 'string' && /^\{[^}]+\}$/.test(val.trim());
-  }
+
 
   getNodeType(token: FlatToken): string {
     if (token.type === 'color') return 'color';
