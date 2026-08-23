@@ -7,8 +7,9 @@ A pure, headless token search engine with full test coverage supporting matching
 
 **GitHub Issue:** https://github.com/correamauricio/dtcg_forge/issues/6
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] `token-search.util.ts` exports `searchTokens`, `matchToken`, and `expandTokensForSearch`.
-- [ ] Unit tests in `token-search.util.spec.ts` cover path matching, group ancestry, alias syntax, token values, type matching, case insensitivity, and sub-properties.
-- [ ] `AliasAutocompleteComponent` refactored to use `token-search.util.ts` with all tests in `alias-autocomplete.component.spec.ts` passing green.
+- [x] `token-search.util.ts` exports `searchTokens`, `matchToken`, and `expandTokensForSearch`.
+- [x] Unit tests in `token-search.util.spec.ts` cover path matching, group ancestry, alias syntax, token values, type matching, case insensitivity, and sub-properties.
+- [x] `AliasAutocompleteComponent` refactored to use `token-search.util.ts` with all tests in `alias-autocomplete.component.spec.ts` passing green.
+
