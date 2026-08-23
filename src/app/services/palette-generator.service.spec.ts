@@ -5,7 +5,8 @@ vi.mock('@material/material-color-utilities', () => {
   return {
     themeFromSourceColor: vi.fn(),
     argbFromHex: vi.fn(),
-    hexFromArgb: (v: number) => '#000000'
+    hexFromArgb: (v: number) => '#000000',
+    TonalPalette: { fromInt: vi.fn() }
   };
 });
 

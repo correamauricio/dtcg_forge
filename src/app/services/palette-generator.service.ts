@@ -1,19 +1,18 @@
 import { Injectable } from '@angular/core';
-import { themeFromSourceColor, argbFromHex, hexFromArgb } from '@material/material-color-utilities';
+import { themeFromSourceColor, argbFromHex, hexFromArgb, TonalPalette } from '@material/material-color-utilities';
 
 const STORAGE_KEY = 'dtcg_palette_generator_script';
 const DEFAULT_SCRIPT = `
 // The Material 3 Color Utilities are injected in the scope:
-// themeFromSourceColor, argbFromHex, hexFromArgb
+// themeFromSourceColor, argbFromHex, hexFromArgb, TonalPalette
 
 // 1. Convert the seed color to ARGB
 const seedArgb = argbFromHex(seedColor);
 
-// 2. Generate the M3 Theme
-const theme = themeFromSourceColor(seedArgb);
-
-// 3. Extract the primary palette (or any palette you prefer)
-const palette = theme.palettes.primary;
+// 2. Generate an exact Tonal Palette from the seed color
+// This preserves the exact chroma (saturation) of your seed color,
+// unlike themeFromSourceColor which forces primary colors to be vibrant.
+const palette = TonalPalette.fromInt(seedArgb);
 
 // 4. Map the Material tonal palette to our token group
 const newTokens = {};
@@ -65,6 +64,7 @@ export class PaletteGeneratorService {
         'themeFromSourceColor', 
         'argbFromHex', 
         'hexFromArgb',
+        'TonalPalette',
         scriptBody
       );
 
@@ -75,7 +75,8 @@ export class PaletteGeneratorService {
         currentGroup, 
         themeFromSourceColor, 
         argbFromHex, 
-        hexFromArgb
+        hexFromArgb,
+        TonalPalette
       );
 
       return result || {};
