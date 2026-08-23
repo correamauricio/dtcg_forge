@@ -1,4 +1,4 @@
-﻿import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { TokenNodeComponent } from './token-node.component';
 import { FlatToken } from '../models/token.model';
@@ -93,5 +93,84 @@ describe('TokenNodeComponent', () => {
     // causing "500" to be omitted from the DOM output. This test will FAIL until hybrid rendering is implemented.
     expect(elementText).toContain('blue');
     expect(elementText).toContain('500');
+  });
+
+  it('should render token row in compact single-line 50/50 layout without alias or type badges', () => {
+    component.node = {
+      primary: {
+        _token: {
+          path: 'color.primary',
+          originalPath: ['color', 'primary'],
+          value: '{color.blue.500}',
+          type: 'color',
+          resolvedValue: '#0055ff',
+          sourceFile: 'semantics.json'
+        }
+      }
+    };
+
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const tokenNameEl = compiled.querySelector('span.truncate');
+    expect(tokenNameEl).toBeTruthy();
+    expect(tokenNameEl?.textContent?.trim()).toBe('primary');
+
+    // Badges should not be present in the row
+    const badgeElements = compiled.querySelectorAll('.bg-blue-950, .bg-gray-900.font-mono');
+    expect(badgeElements.length).toBe(0);
+  });
+
+  it('should emit selectToken when a token leaf is clicked', () => {
+    const emitSpy = vi.spyOn(component.selectToken, 'emit');
+
+    component.node = {
+      sm: {
+        _token: {
+          path: 'spacing.sm',
+          originalPath: ['spacing', 'sm'],
+          value: '8px',
+          type: 'dimension',
+          sourceFile: 'primitives.json'
+        }
+      }
+    };
+
+    fixture.detectChanges();
+
+    component.onSelectToken(component.node, 'sm');
+    expect(emitSpy).toHaveBeenCalledWith({ path: ['spacing', 'sm'] });
+  });
+
+  it('should propagate token update event from child node', () => {
+    const emitSpy = vi.spyOn(component.updateToken, 'emit');
+
+    component.onUpdateTokenEvent({ path: ['color', 'primary'], value: '#123456' });
+    expect(emitSpy).toHaveBeenCalledWith({ path: ['color', 'primary'], value: '#123456' });
+  });
+
+  it('should render sticky group header with depth-based offset and z-index', () => {
+    component.depth = 2;
+    component.node = {
+      brand: {
+        primary: {
+          _token: {
+            path: 'brand.primary',
+            originalPath: ['brand', 'primary'],
+            value: '#ff0000',
+            type: 'color'
+          }
+        }
+      }
+    };
+
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const groupHeader = compiled.querySelector('.sticky') as HTMLElement;
+    expect(groupHeader).toBeTruthy();
+    expect(groupHeader.textContent).toContain('brand');
+    expect(groupHeader.style.top).toBe('52px'); // 2 * 26
+    expect(groupHeader.style.zIndex).toBe('28'); // 30 - 2
   });
 });

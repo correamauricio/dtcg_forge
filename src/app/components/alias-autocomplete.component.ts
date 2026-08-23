@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, inject, signal, computed } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, inject, signal, computed, AfterViewInit, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TokenService } from '../services/token.service';
@@ -11,8 +11,11 @@ import { expandTokensForSearch, filterSearchableTokens } from '../utils/token-se
   selector: 'app-alias-autocomplete',
   standalone: true,
   imports: [CommonModule, FormsModule, OverlayModule, PopoverComponent],
+  host: {
+    class: 'block w-full min-w-0'
+  },
   template: `
-    <div class="relative w-full flex-1" cdkOverlayOrigin #trigger="cdkOverlayOrigin">
+    <div class="relative w-full flex items-center min-w-0" cdkOverlayOrigin #trigger="cdkOverlayOrigin">
       <input
         #inputRef
         type="text"
@@ -22,8 +25,9 @@ import { expandTokensForSearch, filterSearchableTokens } from '../utils/token-se
         (blur)="onBlur()"
         (keydown)="onKeyDown($event)"
         (click)="onInputClick($event)"
+        [title]="value"
         placeholder="Value or {alias}"
-        class="w-full bg-transparent border border-transparent hover:border-gray-600 focus:border-blue-500 focus:bg-gray-900 rounded px-1.5 py-1 text-xs font-mono text-gray-300 focus:text-white outline-none transition-all min-w-0"
+        class="w-full bg-transparent border border-transparent hover:border-gray-600 focus:border-blue-500 focus:bg-gray-900 rounded px-1.5 py-0.5 text-xs font-mono text-right text-gray-300 focus:text-white outline-none transition-all min-w-0"
       />
 
       <app-popover
@@ -81,7 +85,7 @@ import { expandTokensForSearch, filterSearchableTokens } from '../utils/token-se
     </div>
   `
 })
-export class AliasAutocompleteComponent {
+export class AliasAutocompleteComponent implements AfterViewInit, OnChanges {
   tokenService = inject(TokenService);
 
   @Input() value: string = '';
@@ -105,6 +109,14 @@ export class AliasAutocompleteComponent {
     return filterSearchableTokens(expanded, query);
   });
 
+  ngAfterViewInit() {
+    this.scrollToEnd();
+  }
+
+  ngOnChanges() {
+    this.scrollToEnd();
+  }
+
   onInputChange(val: string) {
     this.value = val;
     this.valueChange.emit(val);
@@ -121,6 +133,16 @@ export class AliasAutocompleteComponent {
 
   onBlur() {
     this.valueCommit.emit(this.value);
+    this.scrollToEnd();
+  }
+
+  scrollToEnd() {
+    setTimeout(() => {
+      if (this.inputRef?.nativeElement) {
+        const el = this.inputRef.nativeElement;
+        el.scrollLeft = el.scrollWidth;
+      }
+    }, 0);
   }
 
   onInputClick(event: MouseEvent) {
@@ -150,6 +172,7 @@ export class AliasAutocompleteComponent {
     this.valueChange.emit(finalValue);
     this.valueCommit.emit(finalValue);
     this.isOpen.set(false);
+    this.scrollToEnd();
   }
 
   onKeyDown(event: KeyboardEvent) {

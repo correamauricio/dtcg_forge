@@ -153,4 +153,13 @@ describe('AliasAutocompleteComponent', () => {
     expect(component.isOpen()).toBe(true);
     expect(component.filterQuery()).toBe('brand');
   });
+
+  it('should scroll input to the end on blur and initialization', async () => {
+    const inputEl: HTMLInputElement = fixture.nativeElement.querySelector('input');
+    component.value = '{very.long.token.path.expression.for.testing}';
+    component.onBlur();
+
+    await new Promise(resolve => setTimeout(resolve, 10));
+    expect(inputEl.scrollLeft).toBe(inputEl.scrollWidth);
+  });
 });

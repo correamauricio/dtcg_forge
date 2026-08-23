@@ -10,65 +10,61 @@ import { CompositeNodeComponent } from './nodes/composite-node.component';
   selector: 'app-token-node',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
+    CommonModule,
+    FormsModule,
     PrimitiveNodeComponent,
     ColorNodeComponent,
     CompositeNodeComponent
   ],
   template: `
-    <div class="pl-3 border-l border-gray-800 ml-2 mt-1">
+    <div [class.pl-2]="depth > 0" [class.border-l]="depth > 0" class="border-gray-800/80 ml-1">
       @for (key of getKeys(node); track key) {
         
         <!-- Token Leaf -->
         @if (isToken(node, key)) {
-          <div class="group flex flex-col py-2 px-2 mt-1 hover:bg-gray-800 rounded-md text-sm transition-all border border-transparent"
+          <div class="group flex flex-col py-1 px-1.5 mt-0.5 hover:bg-gray-800/60 rounded text-xs transition-all border border-transparent min-h-7"
                [class.!bg-gray-800]="isSelected(node, key)"
                [class.!border-gray-700]="isSelected(node, key)"
                (click)="onSelectToken(node, key)">
-            <div class="flex items-center justify-between mb-1">
-              <span class="font-medium font-mono text-gray-200" [class.text-blue-400]="isSelected(node, key)">{{ key }}</span>
+            <div class="flex items-center justify-between gap-2 w-full min-w-0">
+              <!-- Left: Token Key (max-w-[45%] with truncate) -->
+              <span class="max-w-[45%] shrink-0 font-mono text-xs text-gray-300 truncate"
+                    [class.text-blue-400]="isSelected(node, key)"
+                    [title]="key">{{ key }}</span>
               
-              <div class="flex space-x-2">
-                @if (node[key]._token.type) {
-                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-900 text-gray-400 border border-gray-700 font-mono">{{ node[key]._token.type }}</span>
-                }
-                @if (isAlias(node[key]._token.value)) {
-                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-950 text-blue-400 font-mono border border-blue-800 flex items-center space-x-1" [title]="'Linked to ' + node[key]._token.value">
-                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.102 1.101"></path></svg>
-                    <span>alias</span>
-                  </span>
+              <!-- Right: Value Editor (flex-1 min-w-0 for maximum visible value width) -->
+              <div class="flex-1 min-w-0 flex items-center justify-end" (click)="$event.stopPropagation()">
+                @switch (getNodeType(node[key]._token)) {
+                  @case ('color') {
+                    <app-color-node class="w-full min-w-0" [token]="node[key]._token" [nodeData]="node" [nodeKey]="key" (updateToken)="onUpdateTokenEvent($event)"></app-color-node>
+                  }
+                  @case ('composite') {
+                    <app-composite-node class="w-full min-w-0" [token]="node[key]._token" [nodeData]="node" [nodeKey]="key" (updateToken)="onUpdateTokenEvent($event)"></app-composite-node>
+                  }
+                  @default {
+                    <app-primitive-node class="w-full min-w-0" [token]="node[key]._token" [nodeData]="node" [nodeKey]="key" (updateToken)="onUpdateTokenEvent($event)"></app-primitive-node>
+                  }
                 }
               </div>
             </div>
-            
-            <!-- Node Router -->
-            @switch (getNodeType(node[key]._token)) {
-              @case ('color') {
-                <app-color-node [token]="node[key]._token" [nodeData]="node" [nodeKey]="key" (updateToken)="onUpdateTokenEvent($event)"></app-color-node>
-              }
-              @case ('composite') {
-                <app-composite-node [token]="node[key]._token" [nodeData]="node" [nodeKey]="key" (updateToken)="onUpdateTokenEvent($event)"></app-composite-node>
-              }
-              @default {
-                <app-primitive-node [token]="node[key]._token" [nodeData]="node" [nodeKey]="key" (updateToken)="onUpdateTokenEvent($event)"></app-primitive-node>
-              }
-            }
           </div>
         }
         
         <!-- Token Group -->
         @if (hasChildren(node, key)) {
-          <div class="mt-2">
+          <div class="mt-0.5">
             @if (!isToken(node, key)) {
-              <div class="py-1 px-2 font-bold text-gray-500 text-[10px] uppercase tracking-widest flex items-center space-x-1">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                <span>{{ key }}</span>
+              <div class="sticky h-6.5 px-2 font-bold text-gray-400 text-[10px] uppercase tracking-wider flex items-center space-x-1.5 bg-gray-900 border-b border-gray-800 shadow-xs -mx-1"
+                   [style.top.px]="depth * 26"
+                   [style.z-index]="30 - depth">
+                <svg class="w-3 h-3 text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                <span class="truncate font-mono" [title]="key">{{ key }}</span>
               </div>
             }
             <app-token-node
               [node]="node[key]"
               [selectedPath]="selectedPath"
+              [depth]="depth + 1"
               (selectToken)="selectToken.emit($event)"
               (updateToken)="updateToken.emit($event)">
             </app-token-node>
@@ -80,35 +76,36 @@ import { CompositeNodeComponent } from './nodes/composite-node.component';
   `
 })
 export class TokenNodeComponent {
-  @Input() node: any;
+  @Input() node: any = {};
   @Input() selectedPath: string[] | null = null;
-  
+  @Input() depth: number = 0;
+
   @Output() selectToken = new EventEmitter<{ path: string[] }>();
   @Output() updateToken = new EventEmitter<{ path: string[], value: any }>();
 
-  getKeys(node: any) {
+  getKeys(node: any): string[] {
     return Object.keys(node || {}).filter(k => k !== '_token');
   }
-  
-  hasChildren(node: any, key: string) {
+
+  hasChildren(node: any, key: string): boolean {
     const child = node[key];
     return child && typeof child === 'object' && this.getKeys(child).length > 0;
   }
-  
-  isToken(node: any, key: string) {
+
+  isToken(node: any, key: string): boolean {
     return !!node[key]?._token;
   }
-  
-  isSelected(node: any, key: string) {
+
+  isSelected(node: any, key: string): boolean {
     if (!this.selectedPath) return false;
     return node[key]._token.originalPath.join('.') === this.selectedPath.join('.');
   }
-  
-  onSelectToken(node: any, key: string) {
+
+  onSelectToken(node: any, key: string): void {
     this.selectToken.emit({ path: node[key]._token.originalPath });
   }
 
-  onUpdateTokenEvent(event: { path: string[], value: any }) {
+  onUpdateTokenEvent(event: { path: string[], value: any }): void {
     this.updateToken.emit(event);
   }
 
