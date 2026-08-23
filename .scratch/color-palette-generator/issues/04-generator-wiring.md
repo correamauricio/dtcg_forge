@@ -4,9 +4,10 @@
 
 **Blocked by:** 01-services, 02-compact-ui, 03-generator-modal
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Listen to color value changes in `PrimitiveGroupNodeComponent`.
-- [ ] When a color is modified, invoke `PaletteGeneratorService.generate` with the new color as the seed.
-- [ ] Emit update events for all other tokens in the group based on the generator script's returned values.
-- [ ] Add integration/unit tests for the end-to-end wiring.
+- [x] Listen to color value changes in `PrimitiveGroupNodeComponent`.
+- [x] When a color is modified, invoke `PaletteGeneratorService.generate` with the new color as the seed.
+- [x] Emit update events for all other tokens in the group based on the generator script's returned values.
+- [x] Add integration/unit tests for the end-to-end wiring.
+
