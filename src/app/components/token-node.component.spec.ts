@@ -1,7 +1,8 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TokenNodeComponent } from './token-node.component';
 import { FlatToken } from '../models/token.model';
+import { TokenGroupAnalyzerService } from '../services/token-group-analyzer.service';
 
 describe('TokenNodeComponent', () => {
   let component: TokenNodeComponent;
@@ -9,7 +10,13 @@ describe('TokenNodeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TokenNodeComponent]
+      imports: [TokenNodeComponent],
+      providers: [
+        {
+          provide: TokenGroupAnalyzerService,
+          useValue: { isPrimitiveColorGroup: vi.fn() }
+        }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(TokenNodeComponent);
@@ -172,5 +179,39 @@ describe('TokenNodeComponent', () => {
     expect(groupHeader.textContent).toContain('brand');
     expect(groupHeader.style.top).toBe('52px'); // 2 * 26
     expect(groupHeader.style.zIndex).toBe('28'); // 30 - 2
+  });
+
+  describe('Primitive Color Group Integration', () => {
+    it('should render app-primitive-group-node when TokenGroupAnalyzerService flags the group', () => {
+      component.node = {
+        myColors: {
+          50: { _token: { type: 'color', value: '#fff', originalPath: ['myColors', '50'] } }
+        }
+      };
+      
+      const analyzerService = TestBed.inject(TokenGroupAnalyzerService);
+      vi.spyOn(analyzerService, 'isPrimitiveColorGroup').mockReturnValue(true);
+      
+      fixture.detectChanges();
+      
+      const primitiveGroupNode = fixture.nativeElement.querySelector('app-primitive-group-node');
+      expect(primitiveGroupNode).toBeTruthy();
+    });
+
+    it('should render normal app-token-node recursively when it is NOT a primitive color group', () => {
+      component.node = {
+        myTokens: {
+          size: { _token: { type: 'dimension', value: '16px', originalPath: ['myTokens', 'size'] } }
+        }
+      };
+      
+      const analyzerService = TestBed.inject(TokenGroupAnalyzerService);
+      vi.spyOn(analyzerService, 'isPrimitiveColorGroup').mockReturnValue(false);
+      
+      fixture.detectChanges();
+      
+      const primitiveGroupNode = fixture.nativeElement.querySelector('app-primitive-group-node');
+      expect(primitiveGroupNode).toBeFalsy();
+    });
   });
 });
