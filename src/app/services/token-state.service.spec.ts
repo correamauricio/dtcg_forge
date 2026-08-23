@@ -103,12 +103,14 @@ describe('TokenStateService', () => {
     // should not crash
   });
 
-  it('should toggle and set json editor state', () => {
-    service.setJsonEditorOpen(false);
+  it('should initialize with json editor closed and allow toggling and setting state', () => {
     expect(service.isJsonEditorOpen()).toBe(false);
-    
-    service.toggleJsonEditor();
+
+    service.setJsonEditorOpen(true);
     expect(service.isJsonEditorOpen()).toBe(true);
+
+    service.toggleJsonEditor();
+    expect(service.isJsonEditorOpen()).toBe(false);
   });
 
   it('should set selected token path', () => {

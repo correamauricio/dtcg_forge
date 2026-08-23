@@ -15,7 +15,7 @@ export class TokenStateService {
   private _selectedTokenPath = signal<string[] | null>(null);
   selectedTokenPath = this._selectedTokenPath.asReadonly();
   
-  private _isJsonEditorOpen = signal<boolean>(true);
+  private _isJsonEditorOpen = signal<boolean>(false);
   isJsonEditorOpen = this._isJsonEditorOpen.asReadonly();
   
   private _duplicateTokensInfo = signal<string[]>([]);

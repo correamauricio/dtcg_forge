@@ -80,7 +80,7 @@ import { TokenNodeComponent } from './token-node.component';
       </div>
 
       <!-- Token Tree List Area -->
-      <div class="flex-1 overflow-y-auto custom-scrollbar p-2">
+      <div class="flex-1 overflow-y-auto custom-scrollbar px-2 pb-2">
         <!-- Matching Token Tree Nodes -->
         <app-token-node
           *ngIf="tokenService.filteredTokenCount() > 0"
@@ -103,7 +103,7 @@ import { TokenNodeComponent } from './token-node.component';
           </div>
           <div class="flex flex-col space-y-0.5">
             <span class="text-xs font-semibold text-gray-200">Nenhum token encontrado</span>
-            <span class="text-[11px] text-gray-400 truncate max-w-[220px]">
+            <span class="text-[11px] text-gray-400 truncate max-w-55">
               Nenhum token corresponde a "{{ tokenService.searchQuery() }}"
             </span>
           </div>

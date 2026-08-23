@@ -7,24 +7,27 @@ import { AliasAutocompleteComponent } from '../alias-autocomplete.component';
   selector: 'app-composite-node',
   standalone: true,
   imports: [CommonModule, AliasAutocompleteComponent],
+  host: {
+    class: 'block w-full min-w-0'
+  },
   template: `
-    <div class="flex flex-col w-full text-xs">
+    <div class="flex flex-col w-full text-xs min-w-0">
       <!-- Header / Accordion trigger -->
-      <div class="flex items-center justify-between cursor-pointer py-1" (click)="toggle()">
-        <span class="text-gray-400 italic">
-          {{ isArray ? 'Array [' + getKeys().length + ']' : 'Object {' + getKeys().length + ' keys}' }}
+      <div class="flex items-center justify-end space-x-1 cursor-pointer py-0.5 text-gray-400 hover:text-gray-200 transition-colors" (click)="toggle()">
+        <span class="font-mono text-[10px] px-1.5 py-0.5 bg-gray-800 rounded border border-gray-700">
+          {{ isArray ? '[' + getKeys().length + ']' : '{' + getKeys().length + '}' }}
         </span>
-        <svg class="w-4 h-4 text-gray-500 transform transition-transform" [class.rotate-180]="isOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-3.5 h-3.5 text-gray-500 transform transition-transform" [class.rotate-180]="isOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
         </svg>
       </div>
 
       <!-- Accordion body -->
-      <div *ngIf="isOpen" class="pl-2 border-l border-gray-700 mt-1 space-y-2">
+      <div *ngIf="isOpen" class="pl-2 border-l border-gray-700/80 mt-1 space-y-1 w-full min-w-0">
         <!-- Primitive Fallback for Aliased Objects -->
-        <div *ngIf="isStringAlias" class="mt-2">
+        <div *ngIf="isStringAlias" class="mt-1 w-full min-w-0">
            <app-alias-autocomplete
-              class="w-full"
+              class="w-full min-w-0"
               [value]="token.value"
               [currentPath]="token.path"
               (valueChange)="onRootValueChange($event)"
@@ -32,14 +35,16 @@ import { AliasAutocompleteComponent } from '../alias-autocomplete.component';
         </div>
 
         <ng-container *ngIf="!isStringAlias">
-          <div *ngFor="let key of getKeys()" class="flex flex-col mb-1">
-            <span class="text-[10px] text-gray-500 mb-0.5">{{ key }}</span>
-            <app-alias-autocomplete
-              class="w-full"
-              [value]="getSubValueString(key)"
-              [currentPath]="token.path + '.' + key"
-              (valueChange)="onSubValueChange(key, $event)"
-            ></app-alias-autocomplete>
+          <div *ngFor="let key of getKeys()" class="flex items-center justify-between gap-2 py-0.5 min-w-0">
+            <span class="max-w-[45%] shrink-0 text-[10px] text-gray-500 font-mono truncate" [title]="key">{{ key }}</span>
+            <div class="flex-1 min-w-0">
+              <app-alias-autocomplete
+                class="w-full min-w-0"
+                [value]="getSubValueString(key)"
+                [currentPath]="token.path + '.' + key"
+                (valueChange)="onSubValueChange(key, $event)"
+              ></app-alias-autocomplete>
+            </div>
           </div>
         </ng-container>
       </div>

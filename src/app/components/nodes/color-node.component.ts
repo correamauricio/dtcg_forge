@@ -8,21 +8,24 @@ import { AliasAutocompleteComponent } from '../alias-autocomplete.component';
   selector: 'app-color-node',
   standalone: true,
   imports: [CommonModule, FormsModule, AliasAutocompleteComponent],
+  host: {
+    class: 'block w-full min-w-0'
+  },
   template: `
-    <div class="flex items-center space-x-2 w-full">
+    <div class="flex items-center justify-end space-x-1.5 w-full min-w-0">
       <app-alias-autocomplete
-        class="flex-1"
+        class="flex-1 min-w-0"
         [value]="getValueString()"
         [currentPath]="token.path"
         (valueCommit)="onValueCommit($event)"
       ></app-alias-autocomplete>
       
-      <div class="relative w-5 h-5 rounded-full overflow-hidden border border-gray-600 shadow-sm shrink-0" title="Click color picker to set HEX color (unlinks alias)">
+      <div class="relative w-4 h-4 rounded-full overflow-hidden border border-gray-600 shadow-xs shrink-0" title="Click color picker to set HEX color (unlinks alias)">
          <input type="color" 
                 #colorPicker
                 [ngModel]="getColorPickerHex()"
                 (change)="onColorPickerChange(colorPicker.value)"
-                class="absolute -top-2 -left-2 w-10 h-10 cursor-pointer">
+                class="absolute -top-2 -left-2 w-8 h-8 cursor-pointer">
       </div>
     </div>
   `

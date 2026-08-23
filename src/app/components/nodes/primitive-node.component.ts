@@ -7,10 +7,13 @@ import { AliasAutocompleteComponent } from '../alias-autocomplete.component';
   selector: 'app-primitive-node',
   standalone: true,
   imports: [CommonModule, AliasAutocompleteComponent],
+  host: {
+    class: 'block w-full min-w-0'
+  },
   template: `
-    <div class="flex items-center space-x-2 w-full">
+    <div class="flex items-center justify-end w-full min-w-0">
       <app-alias-autocomplete
-        class="flex-1"
+        class="w-full min-w-0"
         [value]="getValueString()"
         [currentPath]="token.path"
         (valueCommit)="onValueCommit($event)"
