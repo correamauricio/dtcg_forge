@@ -4,6 +4,14 @@ import { TokenNodeComponent } from './token-node.component';
 import { FlatToken } from '../models/token.model';
 import { TokenGroupAnalyzerService } from '../services/token-group-analyzer.service';
 
+vi.mock('@material/material-color-utilities', () => {
+  return {
+    themeFromSourceColor: vi.fn(),
+    argbFromHex: vi.fn(),
+    hexFromArgb: (v: number) => '#000000'
+  };
+});
+
 describe('TokenNodeComponent', () => {
   let component: TokenNodeComponent;
   let fixture: ComponentFixture<TokenNodeComponent>;

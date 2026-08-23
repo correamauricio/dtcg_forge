@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TokenNodeComponent } from './token-node.component';
 import { FlatToken } from '../models/token.model';
+import { PaletteConfigModalComponent } from './palette-config-modal.component';
+import { PaletteGeneratorService } from '../services/palette-generator.service';
 
 @Component({
   selector: 'app-primitive-group-node',
   standalone: true,
-  imports: [CommonModule, FormsModule, forwardRef(() => TokenNodeComponent)],
+  imports: [CommonModule, FormsModule, forwardRef(() => TokenNodeComponent), PaletteConfigModalComponent],
   template: `
     <div class="mt-0.5 border border-gray-800 rounded bg-gray-900/50 p-2">
       <div class="flex items-center justify-between mb-2">
@@ -46,6 +48,13 @@ import { FlatToken } from '../models/token.model';
         </div>
       }
     </div>
+
+    <app-palette-config-modal
+      [isOpen]="isConfigModalOpen"
+      [currentScript]="generatorScript"
+      (save)="onSaveConfig($event)"
+      (cancel)="onCancelConfig()"
+    ></app-palette-config-modal>
   `
 })
 export class PrimitiveGroupNodeComponent {
@@ -57,6 +66,10 @@ export class PrimitiveGroupNodeComponent {
   @Output() updateToken = new EventEmitter<{ path: string[], value: any }>();
 
   isExpanded = false;
+  isConfigModalOpen = false;
+  generatorScript = '';
+
+  constructor(private paletteService: PaletteGeneratorService) {}
 
   getKeys(): string[] {
     return Object.keys(this.node || {}).filter(k => k !== '_token');
@@ -71,8 +84,17 @@ export class PrimitiveGroupNodeComponent {
   }
 
   openConfig() {
-    // To be implemented in next issue
-    console.log('Open config modal');
+    this.generatorScript = this.paletteService.getScript();
+    this.isConfigModalOpen = true;
+  }
+
+  onSaveConfig(script: string) {
+    this.paletteService.saveScript(script);
+    this.isConfigModalOpen = false;
+  }
+
+  onCancelConfig() {
+    this.isConfigModalOpen = false;
   }
 
   onSelectToken(path: string[]) {
