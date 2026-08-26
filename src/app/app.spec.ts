@@ -1,8 +1,16 @@
+vi.mock('@material/material-color-utilities', () => ({
+  themeFromSourceColor: vi.fn(),
+  argbFromHex: vi.fn(),
+  hexFromArgb: vi.fn(),
+  TonalPalette: { fromInt: vi.fn() },
+  Blend: { harmonize: vi.fn() }
+}));
 import '@angular/compiler';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { TokenService } from './services/token.service';
 import { TokenStateService } from './services/token-state.service';
 import { HistoryService } from './services/history.service';
+import { PaletteGeneratorService } from './services/palette-generator.service';
 import { Injector, runInInjectionContext } from '@angular/core';
 
 describe('TokenService Variant Behavior', () => {
@@ -11,6 +19,7 @@ describe('TokenService Variant Behavior', () => {
       providers: [
         TokenStateService,
         HistoryService,
+        PaletteGeneratorService,
         TokenService
       ]
     });

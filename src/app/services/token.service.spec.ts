@@ -1,3 +1,10 @@
+vi.mock('@material/material-color-utilities', () => ({
+  themeFromSourceColor: vi.fn(),
+  argbFromHex: vi.fn(),
+  hexFromArgb: vi.fn(),
+  TonalPalette: { fromInt: vi.fn() },
+  Blend: { harmonize: vi.fn() }
+}));
 import { TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TokenService } from './token.service';

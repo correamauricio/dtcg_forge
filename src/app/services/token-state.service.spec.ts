@@ -1,11 +1,23 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+vi.mock('@material/material-color-utilities', () => ({
+  themeFromSourceColor: vi.fn(),
+  argbFromHex: vi.fn(),
+  hexFromArgb: vi.fn(),
+  TonalPalette: { fromInt: vi.fn() },
+  Blend: { harmonize: vi.fn() }
+}));
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TokenStateService } from './token-state.service';
+import { PaletteGeneratorService } from './palette-generator.service';
 
 describe('TokenStateService', () => {
   let service: TokenStateService;
+  let mockPaletteGenerator: PaletteGeneratorService;
 
   beforeEach(() => {
-    service = new TokenStateService();
+    mockPaletteGenerator = {
+      harmonizeColorPrimitiveGroups: vi.fn()
+    } as unknown as PaletteGeneratorService;
+    service = new TokenStateService(mockPaletteGenerator);
   });
 
   it('should preserve custom metadata and extension properties when updating a token value', () => {
@@ -234,6 +246,52 @@ describe('TokenStateService', () => {
       service.setSearchQuery('color');
       service.clearSearchQuery();
       expect(service.searchQuery()).toBe('');
+    });
+  });
+
+  describe('harmonizeActiveFile', () => {
+    it('should apply generated source group and harmonize the active file', () => {
+      const activeFileBefore = {
+        color: {
+          primary: { '500': { $value: '#old' } },
+          secondary: { 'base': { $value: '#oldSecondary' } }
+        }
+      };
+      service.addFile('test-harmonize.json', activeFileBefore);
+
+      const generatedSourceGroup = { '500': { $value: '#newPrimary' } };
+      
+      const mockHarmonizedResult = {
+        color: {
+          primary: { '500': { $value: '#newPrimary' } },
+          secondary: { 'base': { $value: '#harmonizedSecondary' } }
+        }
+      };
+
+      vi.spyOn(mockPaletteGenerator, 'harmonizeColorPrimitiveGroups').mockReturnValue(mockHarmonizedResult);
+
+      service.harmonizeActiveFile(['color', 'primary'], '#newPrimary', generatedSourceGroup);
+
+      // Verify the PaletteGeneratorService was called correctly
+      expect(mockPaletteGenerator.harmonizeColorPrimitiveGroups).toHaveBeenCalledTimes(1);
+      
+      const callArgs = vi.mocked(mockPaletteGenerator.harmonizeColorPrimitiveGroups).mock.calls[0];
+      const passedFileContent = callArgs[0];
+      
+      // The passed file content should have the source group already applied
+      expect(passedFileContent.color.primary['500'].$value).toBe('#newPrimary');
+      expect(callArgs[1]).toEqual(['color', 'primary']);
+      expect(callArgs[2]).toBe('#newPrimary');
+
+      // Verify the active file was updated with the harmonized result
+      const activeFile = service.files().find(f => f.name === 'test-harmonize.json');
+      expect(activeFile?.content).toEqual(mockHarmonizedResult);
+    });
+
+    it('should do nothing if active file is not found', () => {
+      service.setActiveFileName('non-existent.json');
+      service.harmonizeActiveFile(['color'], '#000', {});
+      expect(mockPaletteGenerator.harmonizeColorPrimitiveGroups).not.toHaveBeenCalled();
     });
   });
 });

@@ -1,3 +1,10 @@
+vi.mock('@material/material-color-utilities', () => ({
+  themeFromSourceColor: vi.fn(),
+  argbFromHex: vi.fn(),
+  hexFromArgb: vi.fn(),
+  TonalPalette: { fromInt: vi.fn() },
+  Blend: { harmonize: vi.fn() }
+}));
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { signal } from '@angular/core';

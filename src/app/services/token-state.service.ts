@@ -1,6 +1,7 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { TokenFile } from '../models/token.model';
 import { TokenStateMemento } from '../models/history.model';
+import { PaletteGeneratorService } from './palette-generator.service';
 
 @Injectable({
   providedIn: 'root'
@@ -30,7 +31,7 @@ export class TokenStateService {
   private _searchQuery = signal<string>('');
   searchQuery = this._searchQuery.asReadonly();
 
-  constructor() {
+  constructor(private paletteGenerator: PaletteGeneratorService) {
     this.loadPreset();
   }
 
@@ -166,6 +167,39 @@ export class TokenStateService {
     const newFiles = [...currentFiles];
     newFiles[fileIndex] = { ...newFiles[fileIndex], content: newContent };
     this._files.set(newFiles);
+  }
+
+  harmonizeActiveFile(sourceGroupPath: string[], seedColorHex: string, generatedSourceGroup: any) {
+    const activeName = this.activeFileName();
+    const currentFiles = this.files();
+    const fileIndex = currentFiles.findIndex(f => f.name === activeName);
+    if (fileIndex === -1) return;
+
+    // 1. Deep clone the active file
+    const fileContent = JSON.parse(JSON.stringify(currentFiles[fileIndex].content));
+
+    // 2. Apply the generated source group at the specified path
+    let obj = fileContent;
+    for (let i = 0; i < sourceGroupPath.length - 1; i++) {
+      if (!obj[sourceGroupPath[i]]) obj[sourceGroupPath[i]] = {};
+      obj = obj[sourceGroupPath[i]];
+    }
+    const lastKey = sourceGroupPath[sourceGroupPath.length - 1];
+    
+    // Replace the entire group with the newly generated source group tokens
+    // We preserve existing metadata/aliases in the generatedSourceGroup if the PaletteGenerator preserved them,
+    // which it typically doesn't, but here we just replace it.
+    obj[lastKey] = generatedSourceGroup;
+
+    // 3. Harmonize all other color groups in the file
+    const harmonizedContent = this.paletteGenerator.harmonizeColorPrimitiveGroups(
+      fileContent,
+      sourceGroupPath,
+      seedColorHex
+    );
+
+    // 4. Commit the new state in a single transaction
+    this.updateActiveFileContent(harmonizedContent);
   }
 
   addFile(name: string, newTokens: any) {

@@ -1,3 +1,10 @@
+vi.mock('@material/material-color-utilities', () => ({
+  themeFromSourceColor: vi.fn(),
+  argbFromHex: vi.fn(),
+  hexFromArgb: vi.fn(),
+  TonalPalette: { fromInt: vi.fn() },
+  Blend: { harmonize: vi.fn() }
+}));
 ﻿import '@angular/compiler';
 import { describe, it, expect } from 'vitest';
 import { CompositeNodeComponent } from './composite-node.component';
