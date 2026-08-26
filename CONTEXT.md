@@ -39,3 +39,6 @@ _Avoid_: Auto-color tool, theme maker
 **Primitive Token Group**:
 A Token Group where no token inside it is an alias; all tokens represent explicit, hardcoded values.
 _Avoid_: Base tokens group, hardcoded group
+
+**Color Primitive Group**:
+A Primitive Token Group strictly composed of color values (hex/rgb), where no token is an alias. This group can be safely targeted by color harmonization algorithms.
