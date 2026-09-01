@@ -61,7 +61,8 @@ import { TokenGroupAnalyzerService } from '../services/token-group-analyzer.serv
               [nodeName]="key"
               [depth]="depth + 1"
               (selectToken)="selectToken.emit($event)"
-              (updateToken)="updateToken.emit($event)">
+              (updateToken)="updateToken.emit($event)"
+              (harmonizeGroup)="harmonizeGroup.emit($event)">
             </app-primitive-group-node>
           } @else {
             <div class="mt-0.5">
@@ -78,7 +79,8 @@ import { TokenGroupAnalyzerService } from '../services/token-group-analyzer.serv
                 [selectedPath]="selectedPath"
                 [depth]="depth + 1"
                 (selectToken)="selectToken.emit($event)"
-                (updateToken)="updateToken.emit($event)">
+                (updateToken)="updateToken.emit($event)"
+                (harmonizeGroup)="harmonizeGroup.emit($event)">
               </app-token-node>
             </div>
           }
@@ -95,6 +97,7 @@ export class TokenNodeComponent {
 
   @Output() selectToken = new EventEmitter<{ path: string[] }>();
   @Output() updateToken = new EventEmitter<{ path: string[], value: any }>();
+  @Output() harmonizeGroup = new EventEmitter<{ sourceGroupPath: string[], seedColorHex: string, generatedSourceGroup: any }>();
 
   constructor(private analyzer: TokenGroupAnalyzerService) {}
 
