@@ -103,6 +103,13 @@ export class TokenService {
     this.history.execute(command);
   }
 
+  harmonizeActiveFile(sourceGroupPath: string[], seedColorHex: string, generatedSourceGroup: any) {
+    const command = new StateChangeCommand(this.state, () => {
+      this.state.harmonizeActiveFile(sourceGroupPath, seedColorHex, generatedSourceGroup);
+    });
+    this.history.execute(command);
+  }
+
   updateActiveFileContent(newContent: any) {
     const command = new StateChangeCommand(this.state, () => {
       this.state.updateActiveFileContent(newContent);

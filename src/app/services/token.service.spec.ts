@@ -37,6 +37,7 @@ describe('TokenService (Facade & Mutation Orchestration via Command Pattern)', (
       clearSearchQuery: vi.fn(() => stateServiceMock.searchQuery.set('')),
       addFile: vi.fn(),
       updateTokenValue: vi.fn(),
+      harmonizeActiveFile: vi.fn(),
       selectVariant: vi.fn(),
       toggleFileDisabled: vi.fn(),
       setDuplicateTokensInfo: vi.fn(),
@@ -83,6 +84,16 @@ describe('TokenService (Facade & Mutation Orchestration via Command Pattern)', (
 
     passedCommand.execute();
     expect(stateServiceMock.updateActiveFileContent).toHaveBeenCalledWith(updatedContent);
+  });
+
+  it('should route harmonizeActiveFile through HistoryService using a StateChangeCommand', () => {
+    service.harmonizeActiveFile(['color', 'primary'], '#ff0000', { '500': { $value: '#ff0000' } });
+
+    expect(historyServiceMock.execute).toHaveBeenCalledTimes(1);
+    const passedCommand = historyServiceMock.execute.mock.calls[0][0];
+
+    passedCommand.execute();
+    expect(stateServiceMock.harmonizeActiveFile).toHaveBeenCalledWith(['color', 'primary'], '#ff0000', { '500': { $value: '#ff0000' } });
   });
 
   it('should route variant selections through HistoryService using a StateChangeCommand', () => {
