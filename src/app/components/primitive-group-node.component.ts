@@ -19,9 +19,15 @@ import { PaletteGeneratorService } from '../services/palette-generator.service';
             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
           </button>
         </div>
-        <button (click)="toggleExpanded()" class="text-[10px] uppercase font-bold tracking-wider text-blue-400 hover:text-blue-300">
-          {{ isExpanded ? 'Collapse' : 'Expand' }}
-        </button>
+        <div class="flex items-center space-x-3">
+          <label class="flex items-center space-x-1 cursor-pointer">
+            <input type="checkbox" [(ngModel)]="harmonizeEnabled" class="form-checkbox h-3 w-3 text-blue-500 rounded border-gray-600 bg-gray-800">
+            <span class="text-[9px] text-gray-400 uppercase tracking-wider">Harmonize others</span>
+          </label>
+          <button (click)="toggleExpanded()" class="text-[10px] uppercase font-bold tracking-wider text-blue-400 hover:text-blue-300">
+            {{ isExpanded ? 'Collapse' : 'Expand' }}
+          </button>
+        </div>
       </div>
       
       @if (!isExpanded) {
@@ -43,7 +49,8 @@ import { PaletteGeneratorService } from '../services/palette-generator.service';
             [node]="node"
             [depth]="0"
             (selectToken)="selectToken.emit($event)"
-            (updateToken)="updateToken.emit($event)">
+            (updateToken)="updateToken.emit($event)"
+            (harmonizeGroup)="harmonizeGroup.emit($event)">
           </app-token-node>
         </div>
       }
@@ -64,8 +71,10 @@ export class PrimitiveGroupNodeComponent {
 
   @Output() selectToken = new EventEmitter<{ path: string[] }>();
   @Output() updateToken = new EventEmitter<{ path: string[], value: any }>();
+  @Output() harmonizeGroup = new EventEmitter<{ sourceGroupPath: string[], seedColorHex: string, generatedSourceGroup: any }>();
 
   isExpanded = false;
+  harmonizeEnabled = true;
   isConfigModalOpen = false;
   generatorScript = '';
 
@@ -120,10 +129,18 @@ export class PrimitiveGroupNodeComponent {
         
         // Handle both formats: script returning { value: '#fff' } or just '#fff'
         const colorValue = typeof generatedData === 'object' && generatedData !== null && 'value' in generatedData
-          ? generatedData.value
+          ? (generatedData as any).value
           : generatedData;
 
         this.updateToken.emit({ path: updatePath, value: colorValue });
+      }
+
+      if (this.harmonizeEnabled) {
+        this.harmonizeGroup.emit({
+          sourceGroupPath: basePath,
+          seedColorHex: value,
+          generatedSourceGroup: generatedGroup
+        });
       }
     } catch (e) {
       console.error('Failed to generate palette:', e);

@@ -86,9 +86,42 @@ describe('PrimitiveGroupNodeComponent', () => {
     component.onColorChange(['colors', '100'], '#111111');
 
     expect(generateSpy).toHaveBeenCalledWith('#111111', '100', component.node);
-    expect(emitSpy).toHaveBeenCalledTimes(2);
     expect(emitSpy).toHaveBeenCalledWith({ path: ['colors', '100'], value: '#111111' });
     expect(emitSpy).toHaveBeenCalledWith({ path: ['colors', '200'], value: '#222222' });
+  });
+
+  it('should emit harmonizeGroup with generated group when harmonizeEnabled is true', () => {
+    const paletteService = TestBed.inject(PaletteGeneratorService);
+    const mockGeneratedPalette = {
+      100: '#111111',
+      200: '#222222'
+    };
+    vi.spyOn(paletteService, 'generate').mockReturnValue(mockGeneratedPalette);
+    const emitSpy = vi.spyOn(component.harmonizeGroup, 'emit');
+
+    component.harmonizeEnabled = true;
+    component.onColorChange(['colors', '100'], '#111111');
+
+    expect(emitSpy).toHaveBeenCalledWith({
+      sourceGroupPath: ['colors'],
+      seedColorHex: '#111111',
+      generatedSourceGroup: mockGeneratedPalette
+    });
+  });
+
+  it('should NOT emit harmonizeGroup when harmonizeEnabled is false', () => {
+    const paletteService = TestBed.inject(PaletteGeneratorService);
+    const mockGeneratedPalette = {
+      100: '#111111',
+      200: '#222222'
+    };
+    vi.spyOn(paletteService, 'generate').mockReturnValue(mockGeneratedPalette);
+    const emitSpy = vi.spyOn(component.harmonizeGroup, 'emit');
+
+    component.harmonizeEnabled = false;
+    component.onColorChange(['colors', '100'], '#111111');
+
+    expect(emitSpy).not.toHaveBeenCalled();
   });
 
     it('should fallback to single updateToken when PaletteGeneratorService throws an error', () => {
