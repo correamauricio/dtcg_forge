@@ -87,7 +87,8 @@ import { TokenNodeComponent } from './token-node.component';
           [node]="tokenService.groupedTokens()"
           [selectedPath]="tokenService.selectedTokenPath()"
           (selectToken)="onSelectToken($event)"
-          (updateToken)="onUpdateToken($event)">
+          (updateToken)="onUpdateToken($event)"
+          (harmonizeGroup)="onHarmonizeGroup($event)">
         </app-token-node>
 
         <!-- Empty Search State -->
@@ -128,5 +129,9 @@ export class SidebarComponent {
 
   onUpdateToken(event: { path: string[], value: string }) {
     this.tokenService.updateTokenValue(event.path, event.value);
+  }
+
+  onHarmonizeGroup(event: { sourceGroupPath: string[], seedColorHex: string, generatedSourceGroup: any }) {
+    this.tokenService.harmonizeActiveFile(event.sourceGroupPath, event.seedColorHex, event.generatedSourceGroup);
   }
 }

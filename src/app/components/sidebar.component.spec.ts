@@ -46,6 +46,7 @@ describe('SidebarComponent', () => {
       toggleJsonEditor: vi.fn(),
       setSelectedTokenPath: vi.fn(),
       updateTokenValue: vi.fn(),
+      harmonizeActiveFile: vi.fn(),
       setSearchQuery: vi.fn((q: string) => tokenServiceMock.searchQuery.set(q)),
       clearSearchQuery: vi.fn(() => tokenServiceMock.searchQuery.set(''))
     };
@@ -137,6 +138,15 @@ describe('SidebarComponent', () => {
 
     component.onUpdateToken({ path: ['color', 'primary'], value: '#fff' });
     expect(tokenServiceMock.updateTokenValue).toHaveBeenCalledWith(['color', 'primary'], '#fff');
+  });
+
+  it('should delegate onHarmonizeGroup to tokenService.harmonizeActiveFile', () => {
+    component.onHarmonizeGroup({
+      sourceGroupPath: ['color', 'brand'],
+      seedColorHex: '#fff',
+      generatedSourceGroup: {}
+    });
+    expect(tokenServiceMock.harmonizeActiveFile).toHaveBeenCalledWith(['color', 'brand'], '#fff', {});
   });
 
   it('should toggle JSON editor when clicking JSON button', () => {
