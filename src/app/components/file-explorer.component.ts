@@ -210,6 +210,10 @@ import { TokenFile, VariantGroup } from '../models/token.model';
           <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
           <span>Exportar JSON</span>
         </button>
+        <button (click)="onMenuLinkToPreview()" class="w-full px-3 py-1.5 text-left hover:bg-gray-700 flex items-center space-x-2 text-gray-200 hover:text-white">
+          <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+          <span>Vincular ao Preview</span>
+        </button>
         <div class="border-t border-gray-700 my-1"></div>
         <button (click)="onMenuDelete()" class="w-full px-3 py-1.5 text-left hover:bg-red-600/20 text-red-400 hover:text-red-300 flex items-center space-x-2">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
@@ -372,9 +376,17 @@ export class FileExplorerComponent {
   }
 
   onMenuDelete() {
-    const file = this.activeMenuFile();
-    if (file) {
-      this.onDeleteFile(file);
+    const fileName = this.activeMenuFile();
+    if (fileName) {
+      this.onDeleteFile(fileName);
+    }
+    this.activeMenuFile.set(null);
+  }
+
+  onMenuLinkToPreview() {
+    const fileName = this.activeMenuFile();
+    if (fileName) {
+      this.tokenService.linkFileToPreview(fileName);
     }
     this.activeMenuFile.set(null);
   }

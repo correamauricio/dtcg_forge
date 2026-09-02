@@ -131,6 +131,13 @@ export class TokenService {
     this.history.execute(command);
   }
 
+  linkFileToPreview(fileName: string) {
+    const command = new StateChangeCommand(this.state, () => {
+      this.state.linkFileToPreview(fileName);
+    });
+    this.history.execute(command);
+  }
+
   toggleJsonEditor() {
     this.state.toggleJsonEditor();
   }

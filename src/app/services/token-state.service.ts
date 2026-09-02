@@ -1,6 +1,8 @@
 import { Injectable, signal } from '@angular/core';
 import { TokenFile } from '../models/token.model';
 import { TokenStateMemento } from '../models/history.model';
+import { extractFileTokenPaths } from '../utils/token-extractor.util';
+import { heuristicTokenMatch } from '../utils/heuristic-linker.util';
 
 @Injectable({
   providedIn: 'root'
@@ -96,8 +98,23 @@ export class TokenStateService {
         }
       }
     };
+    const defaultPreviewSheet = {
+      preview: {
+        button: {
+          cta: {
+            background: { $value: "#000000", $type: "color" },
+            text: { $value: "#ffffff", $type: "color" }
+          }
+        },
+        card: {
+          surface: { $value: "#ffffff", $type: "color" },
+          text: { $value: "#000000", $type: "color" }
+        }
+      }
+    };
     
     this._files.set([
+      { name: 'default-preview-sheet.json', content: defaultPreviewSheet },
       { name: 'primitives.json', content: primitives },
       { name: 'semantics.json', content: semantics },
       { name: 'semantics-dark.json', content: semanticsDark }
@@ -107,6 +124,47 @@ export class TokenStateService {
 
   setDuplicateTokensInfo(duplicates: string[]) {
     this._duplicateTokensInfo.set(duplicates);
+  }
+
+  linkFileToPreview(importedFileName: string) {
+    const currentFiles = this.files();
+    const importedFile = currentFiles.find(f => f.name === importedFileName);
+    const previewFile = currentFiles.find(f => f.name === 'default-preview-sheet.json');
+
+    if (!importedFile || !previewFile) return;
+
+    const extracted = extractFileTokenPaths([importedFile, previewFile]);
+    const importedTokens = extracted.get(importedFileName)?.tokens || [];
+    const previewTokens = extracted.get('default-preview-sheet.json')?.tokens || [];
+
+    const matchedTokens = heuristicTokenMatch(importedTokens, previewTokens);
+
+    const newPreviewContent = JSON.parse(JSON.stringify(previewFile.content));
+
+    for (const token of matchedTokens) {
+      let obj = newPreviewContent;
+      const path = token.originalPath;
+      for (let i = 0; i < path.length - 1; i++) {
+        if (!obj[path[i]]) obj[path[i]] = {};
+        obj = obj[path[i]];
+      }
+      const lastKey = path[path.length - 1];
+      if (obj[lastKey] && (obj[lastKey].$value !== undefined || obj[lastKey].value !== undefined)) {
+        if (obj[lastKey].$value !== undefined) {
+          obj[lastKey].$value = token.value;
+        } else {
+          obj[lastKey].value = token.value;
+        }
+      } else {
+        obj[lastKey] = { $value: token.value };
+      }
+    }
+
+    const previewIndex = currentFiles.findIndex(f => f.name === 'default-preview-sheet.json');
+    const newFiles = [...currentFiles];
+    newFiles[previewIndex] = { ...previewFile, content: newPreviewContent };
+    
+    this._files.set(newFiles);
   }
 
   selectVariant(groupId: string, fileName: string) {
