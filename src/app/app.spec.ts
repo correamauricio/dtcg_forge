@@ -16,6 +16,12 @@ describe('TokenService Variant Behavior', () => {
     });
 
     runInInjectionContext(injector, () => {
+      const state = injector.get(TokenStateService);
+      state.addFile('primitives.json', { color: { blue: { 500: { $value: "#3b82f6", $type: "color" } } } });
+      state.addFile('semantics.json', { color: { primary: { main: { $value: "{color.blue.500}", $type: "color" } } } });
+      state.addFile('semantics-dark.json', { color: { primary: { main: { $value: "#000", $type: "color" } } } });
+      state.setActiveFileName('semantics.json');
+
       const service = injector.get(TokenService);
 
       expect(service.activeFileName()).toBe('semantics.json');

@@ -37,89 +37,92 @@ export class TokenStateService {
   }
 
   loadPreset() {
-    const primitives = {
-      color: {
-        blue: {
-          500: { $value: "#3b82f6", $type: "color" },
-          600: { $value: "#2563eb", $type: "color" }
-        },
-        white: { $value: "#ffffff", $type: "color" },
-        gray: {
-          100: { $value: "#f3f4f6", $type: "color" },
-          500: { $value: "#6b7280", $type: "color" },
-          900: { $value: "#111827", $type: "color" }
-        }
-      },
-      spacing: {
-        sm: { $value: "0.5rem", $type: "dimension" },
-        md: { $value: "1rem", $type: "dimension" },
-        lg: { $value: "1.5rem", $type: "dimension" },
-        xl: { $value: "2rem", $type: "dimension" }
-      },
-      radii: {
-        md: { $value: "0.375rem", $type: "dimension" },
-        full: { $value: "9999px", $type: "dimension" }
-      },
-      typography: {
-        fontFamily: {
-          sans: { $value: "Inter, sans-serif", $type: "fontFamily" }
-        }
-      }
-    };
-
-    const semantics = {
-      color: {
-        primary: {
-          main: { $value: "{color.blue.500}", $type: "color" },
-          dark: { $value: "{color.blue.600}", $type: "color" }
-        },
-        background: {
-          DEFAULT: { $value: "{color.white}", $type: "color" },
-          muted: { $value: "{color.gray.100}", $type: "color" }
-        },
-        text: {
-          main: { $value: "{color.gray.900}", $type: "color" },
-          muted: { $value: "{color.gray.500}", $type: "color" },
-          onPrimary: { $value: "{color.white}", $type: "color" }
-        }
-      }
-    };
-
-    const semanticsDark = {
-      color: {
-        background: {
-          DEFAULT: { $value: "{color.gray.900}", $type: "color" },
-          muted: { $value: "{color.gray.900}", $type: "color" }
-        },
-        text: {
-          main: { $value: "{color.white}", $type: "color" },
-          muted: { $value: "{color.gray.400}", $type: "color" },
-          onPrimary: { $value: "{color.white}", $type: "color" }
-        }
-      }
-    };
     const defaultPreviewSheet = {
       preview: {
+        global: {
+          fontFamily: {
+            base: { $value: "Inter, sans-serif", $type: "fontFamily" },
+            mono: { $value: "monospace", $type: "fontFamily" }
+          },
+          fontSize: {
+            sm: { $value: "12px", $type: "fontSizes" },
+            base: { $value: "16px", $type: "fontSizes" },
+            lg: { $value: "20px", $type: "fontSizes" },
+            xl: { $value: "24px", $type: "fontSizes" }
+          },
+          borderRadius: {
+            sm: { $value: "4px", $type: "borderRadius" },
+            md: { $value: "8px", $type: "borderRadius" },
+            lg: { $value: "16px", $type: "borderRadius" },
+            full: { $value: "9999px", $type: "borderRadius" }
+          },
+          spacing: {
+            sm: { $value: "8px", $type: "spacing" },
+            md: { $value: "16px", $type: "spacing" },
+            lg: { $value: "24px", $type: "spacing" },
+            xl: { $value: "32px", $type: "spacing" }
+          },
+          shadow: {
+            sm: { $value: "0 1px 2px rgba(0,0,0,0.05)", $type: "boxShadow" },
+            md: { $value: "0 4px 6px rgba(0,0,0,0.1)", $type: "boxShadow" }
+          }
+        },
+        surface: {
+          page: { $value: "#f9fafb", $type: "color" },
+          card: { $value: "#ffffff", $type: "color" },
+          panel: { $value: "#f3f4f6", $type: "color" },
+          overlay: { $value: "rgba(0,0,0,0.5)", $type: "color" },
+          border: { $value: "#e5e7eb", $type: "color" }
+        },
+        typography: {
+          main: { $value: "#111827", $type: "color" },
+          muted: { $value: "#6b7280", $type: "color" },
+          inverse: { $value: "#ffffff", $type: "color" },
+          link: { $value: "#2563eb", $type: "color" }
+        },
         button: {
           cta: {
             background: { $value: "#000000", $type: "color" },
+            hover: { $value: "#374151", $type: "color" },
+            text: { $value: "#ffffff", $type: "color" }
+          },
+          secondary: {
+            background: { $value: "#f3f4f6", $type: "color" },
+            hover: { $value: "#e5e7eb", $type: "color" },
+            text: { $value: "#111827", $type: "color" }
+          },
+          danger: {
+            background: { $value: "#ef4444", $type: "color" },
+            hover: { $value: "#dc2828", $type: "color" },
             text: { $value: "#ffffff", $type: "color" }
           }
         },
-        card: {
-          surface: { $value: "#ffffff", $type: "color" },
-          text: { $value: "#000000", $type: "color" }
+        input: {
+          background: { $value: "#ffffff", $type: "color" },
+          border: { $value: "#d1d5db", $type: "color" },
+          text: { $value: "#111827", $type: "color" },
+          placeholder: { $value: "#9ca3af", $type: "color" },
+          ring: { $value: "#3b82f6", $type: "color" }
+        },
+        alert: {
+          success: {
+            background: { $value: "#dcfce7", $type: "color" },
+            border: { $value: "#86efac", $type: "color" },
+            text: { $value: "#166534", $type: "color" }
+          },
+          warning: {
+            background: { $value: "#fef9c3", $type: "color" },
+            border: { $value: "#fde047", $type: "color" },
+            text: { $value: "#854d0e", $type: "color" }
+          }
         }
       }
     };
     
     this._files.set([
-      { name: 'default-preview-sheet.json', content: defaultPreviewSheet },
-      { name: 'primitives.json', content: primitives },
-      { name: 'semantics.json', content: semantics },
-      { name: 'semantics-dark.json', content: semanticsDark }
+      { name: 'default-preview-sheet.json', content: defaultPreviewSheet }
     ]);
-    this._activeFileName.set('semantics.json');
+    this._activeFileName.set('default-preview-sheet.json');
   }
 
   setDuplicateTokensInfo(duplicates: string[]) {
@@ -242,6 +245,7 @@ export class TokenStateService {
   }
 
   deleteFile(name: string) {
+    if (name === 'default-preview-sheet.json') return;
     const currentFiles = this.files();
     const newFiles = currentFiles.filter(f => f.name !== name);
     this._files.set(newFiles);
@@ -272,6 +276,7 @@ export class TokenStateService {
   }
 
   renameFile(oldName: string, newName: string): boolean {
+    if (oldName === 'default-preview-sheet.json') return false;
     const trimmed = (newName || '').trim();
     if (!trimmed) return false;
     if (oldName === trimmed) return true;

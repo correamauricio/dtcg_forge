@@ -63,13 +63,11 @@ describe('TokenStateService', () => {
     expect(service.files().length).toBeGreaterThan(0);
   });
 
-  it('should load presets correctly on initialization', () => {
+  it('should load only the default preview sheet on initialization', () => {
     const files = service.files();
-    expect(files.length).toBe(3);
-    expect(files.find(f => f.name === 'primitives.json')).toBeDefined();
-    expect(files.find(f => f.name === 'semantics.json')).toBeDefined();
-    expect(files.find(f => f.name === 'semantics-dark.json')).toBeDefined();
-    expect(service.activeFileName()).toBe('semantics.json');
+    expect(files.length).toBe(1);
+    expect(files[0].name).toBe('default-preview-sheet.json');
+    expect(service.activeFileName()).toBe('default-preview-sheet.json');
   });
 
   it('should set duplicate tokens info', () => {
@@ -120,12 +118,14 @@ describe('TokenStateService', () => {
 
   it('should create and restore mementos safely isolated by deep copy', () => {
     service.addFile('test.json', { color: { $value: '#000' } });
+    service.addFile('primitives.json', { color: { $value: '#fff' } });
     service.selectVariant('group-1', 'light.json');
     service.toggleFileDisabled('primitives.json');
     
     const memento = service.createMemento();
 
     // Mutate state after memento creation
+    service.setActiveFileName('test.json');
     service.updateTokenValue(['color'], '#fff');
     service.selectVariant('group-1', 'dark.json');
     service.toggleFileDisabled('primitives.json'); // enable it back
@@ -153,25 +153,37 @@ describe('TokenStateService', () => {
   });
 
   describe('deleteFile', () => {
+    it('should prevent deletion of default-preview-sheet.json', () => {
+      service.deleteFile('default-preview-sheet.json');
+      expect(service.files().find(f => f.name === 'default-preview-sheet.json')).toBeDefined();
+      expect(service.files().length).toBe(1);
+    });
+
     it('should remove file and update activeFileName to remaining file if active file was deleted', () => {
+      service.addFile('semantics.json', {});
       service.setActiveFileName('semantics.json');
       service.deleteFile('semantics.json');
 
       expect(service.files().find(f => f.name === 'semantics.json')).toBeUndefined();
-      expect(service.files().length).toBe(2);
-      expect(service.activeFileName()).toBe('primitives.json');
+      expect(service.files().length).toBe(1); // default-preview-sheet remains
+      expect(service.activeFileName()).toBe('default-preview-sheet.json');
     });
 
-    it('should set activeFileName to empty string if all files are deleted', () => {
-      service.deleteFile('primitives.json');
+    it('should set activeFileName to empty string if somehow all files are deleted (though default is protected)', () => {
+      // Since default cannot be deleted, this is a hypothetical scenario for complete cleanup
+      service.addFile('primitives.json', {});
+      service.addFile('semantics.json', {});
+      service.setActiveFileName('semantics.json');
       service.deleteFile('semantics.json');
-      service.deleteFile('semantics-dark.json');
+      service.deleteFile('primitives.json');
 
-      expect(service.files().length).toBe(0);
-      expect(service.activeFileName()).toBe('');
+      expect(service.files().length).toBe(1);
+      expect(service.activeFileName()).toBe('default-preview-sheet.json');
     });
 
     it('should retain activeFileName if another non-active file is deleted', () => {
+      service.addFile('primitives.json', {});
+      service.addFile('semantics.json', {});
       service.setActiveFileName('semantics.json');
       service.deleteFile('primitives.json');
 
@@ -179,6 +191,7 @@ describe('TokenStateService', () => {
     });
 
     it('should clean up disabledFileNames and selectedVariants when file is deleted', () => {
+      service.addFile('semantics-dark.json', {});
       service.toggleFileDisabled('semantics-dark.json');
       service.selectVariant('group-1', 'semantics-dark.json');
       expect(service.disabledFileNames().has('semantics-dark.json')).toBe(true);
@@ -191,7 +204,14 @@ describe('TokenStateService', () => {
   });
 
   describe('renameFile', () => {
+    it('should prevent renaming default-preview-sheet.json', () => {
+      const success = service.renameFile('default-preview-sheet.json', 'new-name.json');
+      expect(success).toBe(false);
+      expect(service.files().find(f => f.name === 'default-preview-sheet.json')).toBeDefined();
+    });
+
     it('should rename file and update activeFileName if active file was renamed', () => {
+      service.addFile('semantics.json', {});
       service.setActiveFileName('semantics.json');
       const success = service.renameFile('semantics.json', 'tokens-semantic.json');
 
@@ -202,6 +222,7 @@ describe('TokenStateService', () => {
     });
 
     it('should update disabledFileNames and selectedVariants mappings when file is renamed', () => {
+      service.addFile('semantics-dark.json', {});
       service.toggleFileDisabled('semantics-dark.json');
       service.selectVariant('group-1', 'semantics-dark.json');
 
@@ -213,6 +234,8 @@ describe('TokenStateService', () => {
     });
 
     it('should reject renaming to an existing file name, empty string, or non-existent old file', () => {
+      service.addFile('primitives.json', {});
+      service.addFile('semantics.json', {});
       expect(service.renameFile('primitives.json', 'semantics.json')).toBe(false);
       expect(service.renameFile('primitives.json', '')).toBe(false);
       expect(service.renameFile('primitives.json', '   ')).toBe(false);
