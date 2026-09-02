@@ -39,3 +39,15 @@ _Avoid_: Auto-color tool, theme maker
 **Primitive Token Group**:
 A Token Group where no token inside it is an alias; all tokens represent explicit, hardcoded values.
 _Avoid_: Base tokens group, hardcoded group
+
+**Default Preview Sheet**:
+A built-in Token File containing Component Tokens that bind directly to the UI elements in the live preview. Its tokens can be aliased to the user's imported tokens via Heuristic Token Linking.
+_Avoid_: Default token sheet, internal preview tokens
+
+**Component Token**:
+A token whose purpose is tied to a specific UI element rather than a generic semantic concept (e.g., `button.cta.backgroundColor`).
+_Avoid_: UI token, specific token
+
+**Heuristic Token Linking**:
+The process of automatically mutating the Default Preview Sheet's Component Tokens to use aliases pointing to the user's imported semantic or primitive tokens, based on name and value similarities.
+_Avoid_: Token mapping, auto-linking
