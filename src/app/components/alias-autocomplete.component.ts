@@ -101,7 +101,7 @@ export class AliasAutocompleteComponent implements AfterViewInit, OnChanges {
   selectedIndex = signal<number>(0);
 
   matchingTokens = computed(() => {
-    const all = this.tokenService.allFlatTokens();
+    const all = this.tokenService.allFlatTokens().filter(t => t.sourceFile !== 'default-preview-sheet.json');
     const query = this.filterQuery();
     const current = this.currentPath;
 
