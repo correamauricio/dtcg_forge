@@ -23,40 +23,40 @@ import { TokenService } from '../services/token.service';
       <!-- Live Sandbox Area -->
       <!-- We use the custom CSS variables for styling to prove they work -->
       <div class="p-8 overflow-y-auto flex-1 preview-container" 
-           style="background-color: var(--color-background-DEFAULT); color: var(--color-text-main); font-family: var(--typography-fontFamily-sans);">
+           style="background-color: var(--preview-surface-page); color: var(--preview-typography-main); font-family: var(--preview-global-fontFamily-base);">
         
-        <div class="max-w-3xl mx-auto space-y-12">
+        <div class="mx-auto" style="max-width: 48rem; padding-bottom: var(--preview-global-spacing-xl);">
            
            <!-- Hero Section -->
-           <div class="text-center space-y-4">
-              <h1 class="text-5xl font-extrabold tracking-tight" style="color: var(--color-primary-main);">
+           <div class="text-center" style="margin-bottom: var(--preview-global-spacing-xl);">
+              <h1 style="font-size: var(--preview-global-fontSize-xl); font-weight: 800; color: var(--preview-typography-main); margin-bottom: var(--preview-global-spacing-sm);">
                  Discover Our New Design System
               </h1>
-              <p class="text-lg max-w-2xl mx-auto" style="color: var(--color-text-muted);">
+              <p style="font-size: var(--preview-global-fontSize-base); color: var(--preview-typography-muted); margin-bottom: var(--preview-global-spacing-md);">
                  This preview sandbox dynamically updates its styles whenever you modify design tokens in the editor. Experience the power of W3C standard tokens in real-time.
               </p>
-              <div class="pt-4 space-x-4">
-                 <button class="font-semibold transition-all hover:opacity-90 shadow-lg"
-                         style="background-color: var(--color-primary-main); color: var(--color-text-onPrimary); padding: var(--spacing-md) var(--spacing-xl); border-radius: var(--radii-full);">
+              <div style="display: flex; justify-content: center; gap: var(--preview-global-spacing-sm);">
+                 <button class="font-semibold transition-all hover:opacity-90"
+                         style="background-color: var(--preview-button-cta-background); color: var(--preview-button-cta-text); padding: var(--preview-global-spacing-sm) var(--preview-global-spacing-lg); border-radius: var(--preview-global-borderRadius-full); box-shadow: var(--preview-global-shadow-md);">
                     Get Started
                  </button>
                  <button class="font-semibold border-2 transition-all hover:bg-gray-50"
-                         style="border-color: var(--color-primary-main); color: var(--color-primary-main); padding: calc(var(--spacing-md) - 2px) var(--spacing-xl); border-radius: var(--radii-full);">
+                         style="border-color: var(--preview-surface-border); background-color: var(--preview-button-secondary-background); color: var(--preview-button-secondary-text); padding: calc(var(--preview-global-spacing-sm) - 2px) var(--preview-global-spacing-lg); border-radius: var(--preview-global-borderRadius-full);">
                     View Documentation
                  </button>
               </div>
            </div>
 
            <!-- Components Demo -->
-           <div class="grid grid-cols-2 gap-8">
+           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--preview-global-spacing-lg);">
                <!-- Card Component -->
-               <div class="shadow-xl overflow-hidden transition-transform hover:-translate-y-1"
-                    style="background-color: var(--color-background-DEFAULT); border-radius: var(--radii-md); border: 1px solid var(--color-background-muted);">
-                  <div class="h-32 w-full" style="background-color: var(--color-primary-main); opacity: 0.2;"></div>
-                  <div style="padding: var(--spacing-lg);">
-                     <h3 class="font-bold text-xl mb-2">Beautiful Components</h3>
-                     <p style="color: var(--color-text-muted); margin-bottom: var(--spacing-md);">Build interfaces faster than ever before with fully tokenized components.</p>
-                     <a href="#" class="font-medium inline-flex items-center" style="color: var(--color-primary-main);">
+               <div class="overflow-hidden transition-transform hover:-translate-y-1"
+                    style="background-color: var(--preview-surface-card); border-radius: var(--preview-global-borderRadius-md); border: 1px solid var(--preview-surface-border); box-shadow: var(--preview-global-shadow-md);">
+                  <div class="h-32 w-full" style="background-color: var(--preview-button-cta-background); opacity: 0.2;"></div>
+                  <div style="padding: var(--preview-global-spacing-md);">
+                     <h3 style="font-size: var(--preview-global-fontSize-lg); font-weight: 700; margin-bottom: var(--preview-global-spacing-sm);">Beautiful Components</h3>
+                     <p style="color: var(--preview-typography-muted); margin-bottom: var(--preview-global-spacing-sm); font-size: var(--preview-global-fontSize-sm);">Build interfaces faster than ever before with fully tokenized components.</p>
+                     <a href="#" style="color: var(--preview-typography-link); font-weight: 500; font-size: var(--preview-global-fontSize-sm); display: inline-flex; align-items: center;">
                        Learn more
                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                      </a>
@@ -64,34 +64,34 @@ import { TokenService } from '../services/token.service';
                </div>
 
               <!-- Form Component -->
-              <div class="shadow-xl"
-                   style="background-color: var(--color-background-DEFAULT); padding: var(--spacing-lg); border-radius: var(--radii-md); border: 1px solid var(--color-background-muted);">
-                 <h3 class="font-bold text-xl mb-4">Contact Us</h3>
-                 <div class="space-y-4">
+              <div style="background-color: var(--preview-surface-panel); padding: var(--preview-global-spacing-md); border-radius: var(--preview-global-borderRadius-lg); border: 1px solid var(--preview-surface-border); box-shadow: var(--preview-global-shadow-md);">
+                 <h3 style="font-size: var(--preview-global-fontSize-lg); font-weight: 700; margin-bottom: var(--preview-global-spacing-md);">Contact Us</h3>
+                 <div style="display: flex; flex-direction: column; gap: var(--preview-global-spacing-sm);">
                     <div>
-                       <label class="block text-sm font-medium mb-1" style="color: var(--color-text-main);">Email</label>
-                       <input type="email" class="w-full border shadow-sm outline-none transition-colors"
-                              style="border-radius: var(--radii-md); padding: var(--spacing-sm) var(--spacing-md); border-color: var(--color-background-muted);">
+                       <label style="color: var(--preview-typography-main); font-size: var(--preview-global-fontSize-sm); font-weight: 500; display: block; margin-bottom: 4px;">Email</label>
+                       <input type="email" class="w-full outline-none transition-colors"
+                              style="background-color: var(--preview-input-background); color: var(--preview-input-text); border-radius: var(--preview-global-borderRadius-sm); padding: var(--preview-global-spacing-sm); border: 1px solid var(--preview-input-border); box-shadow: var(--preview-global-shadow-sm);">
                     </div>
                     <div>
-                       <label class="block text-sm font-medium mb-1" style="color: var(--color-text-main);">Message</label>
-                       <textarea class="w-full border shadow-sm outline-none transition-colors" rows="3"
-                                 style="border-radius: var(--radii-md); padding: var(--spacing-sm) var(--spacing-md); border-color: var(--color-background-muted);"></textarea>
+                       <label style="color: var(--preview-typography-main); font-size: var(--preview-global-fontSize-sm); font-weight: 500; display: block; margin-bottom: 4px;">Message</label>
+                       <textarea class="w-full outline-none transition-colors" rows="3"
+                                 style="background-color: var(--preview-input-background); color: var(--preview-input-text); border-radius: var(--preview-global-borderRadius-sm); padding: var(--preview-global-spacing-sm); border: 1px solid var(--preview-input-border); box-shadow: var(--preview-global-shadow-sm);"></textarea>
                     </div>
-                     <button class="w-full font-semibold transition-all hover:opacity-90 shadow-md"
-                             style="background-color: var(--color-primary-main); color: var(--color-text-onPrimary); padding: var(--spacing-sm) var(--spacing-md); border-radius: var(--radii-md);">
+                     <button class="w-full font-semibold transition-all hover:opacity-90"
+                             style="background-color: var(--preview-button-cta-background); color: var(--preview-button-cta-text); padding: var(--preview-global-spacing-sm); border-radius: var(--preview-global-borderRadius-md); box-shadow: var(--preview-global-shadow-sm);">
                         Send Message
                      </button>
                  </div>
               </div>
            </div>
            
-           <!-- Color Palette -->
-           <div class="mt-8">
-              <h3 class="font-bold text-lg mb-4">Generated Primary Palette</h3>
-              <div class="flex space-x-2">
-                 <div class="w-16 h-16 rounded shadow-inner flex items-center justify-center text-xs font-mono font-semibold text-white" style="background-color: var(--color-primary-main);">Main</div>
-                 <div class="w-16 h-16 rounded shadow-inner flex items-center justify-center text-xs font-mono font-semibold text-white" style="background-color: var(--color-primary-dark);">Dark</div>
+           <!-- Alerts Demo -->
+           <div style="margin-top: var(--preview-global-spacing-xl); display: flex; flex-direction: column; gap: var(--preview-global-spacing-sm);">
+              <div style="background-color: var(--preview-alert-success-background); border: 1px solid var(--preview-alert-success-border); color: var(--preview-alert-success-text); padding: var(--preview-global-spacing-sm) var(--preview-global-spacing-md); border-radius: var(--preview-global-borderRadius-sm); font-size: var(--preview-global-fontSize-sm); font-weight: 500;">
+                 <span class="mr-2">✓</span> Successfully linked tokens!
+              </div>
+              <div style="background-color: var(--preview-alert-warning-background); border: 1px solid var(--preview-alert-warning-border); color: var(--preview-alert-warning-text); padding: var(--preview-global-spacing-sm) var(--preview-global-spacing-md); border-radius: var(--preview-global-borderRadius-sm); font-size: var(--preview-global-fontSize-sm); font-weight: 500;">
+                 <span class="mr-2">⚠</span> Please review your color contrast.
               </div>
            </div>
            
