@@ -9,7 +9,7 @@ No popover do autocomplete, ao renderizar sugestões de alias tokens para tipos 
 
 **Status:** ready-for-agent
 
-- [ ] Tokens de tipos que não sejam `color` exibem seu `resolvedValue` de forma legível na listagem de sugestões.
-- [ ] Tokens do tipo `color` mantêm apenas o swatch visual de cor, sem poluir com o texto do valor.
-- [ ] Testes unitários TDD em `alias-autocomplete.component.spec.ts` cobrindo a renderização dos valores resolvidos conforme o tipo do token.
+- [x] Tokens de tipos que não sejam `color` exibem seu `resolvedValue` de forma legível na listagem de sugestões.
+- [x] Tokens do tipo `color` mantêm apenas o swatch visual de cor, sem poluir com o texto do valor.
+- [x] Testes unitários TDD em `alias-autocomplete.component.spec.ts` cobrindo a renderização dos valores resolvidos conforme o tipo do token.
 - [ ] Implementação aprovada pelo usuário antes de fechar a issue ou mergear.

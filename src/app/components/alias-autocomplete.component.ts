@@ -68,7 +68,15 @@ import { expandTokensForSearch, filterSearchableTokens } from '../utils/token-se
               </div>
             </div>
 
-            <div class="flex items-center space-x-1 shrink-0">
+            <div class="flex items-center space-x-1.5 shrink-0">
+              <span
+                *ngIf="token.type !== 'color' && token.resolvedValue !== undefined && token.resolvedValue !== null"
+                class="token-resolved-value text-[11px] font-mono truncate max-w-[120px]"
+                [class.text-blue-200]="i === selectedIndex()"
+                [class.text-gray-400]="i !== selectedIndex()"
+              >
+                {{ token.resolvedValue }}
+              </span>
               <span
                 class="px-1 py-0.5 text-[9px] rounded font-mono uppercase font-semibold"
                 [class.bg-blue-950]="i !== selectedIndex()"

@@ -3,11 +3,14 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AliasAutocompleteComponent } from './alias-autocomplete.component';
 import { TokenService } from '../services/token.service';
+import { OverlayContainer } from '@angular/cdk/overlay';
 import { FlatToken } from '../models/token.model';
 
 describe('AliasAutocompleteComponent', () => {
   let component: AliasAutocompleteComponent;
   let fixture: ComponentFixture<AliasAutocompleteComponent>;
+  let overlayContainer: OverlayContainer;
+  let overlayContainerElement: HTMLElement;
 
   const mockTokens: FlatToken[] = [
     {
@@ -25,6 +28,30 @@ describe('AliasAutocompleteComponent', () => {
       resolvedValue: '#1d4ed8',
       type: 'color',
       sourceFile: 'core.json'
+    },
+    {
+      path: 'spacing.sm',
+      originalPath: ['spacing', 'sm'],
+      value: '8px',
+      resolvedValue: '8px',
+      type: 'dimension',
+      sourceFile: 'core.json'
+    },
+    {
+      path: 'opacity.half',
+      originalPath: ['opacity', 'half'],
+      value: 0.5,
+      resolvedValue: 0.5,
+      type: 'number',
+      sourceFile: 'core.json'
+    },
+    {
+      path: 'typography.font-family',
+      originalPath: ['typography', 'font-family'],
+      value: 'Inter, sans-serif',
+      resolvedValue: 'Inter, sans-serif',
+      type: 'string',
+      sourceFile: 'core.json'
     }
   ];
 
@@ -41,6 +68,8 @@ describe('AliasAutocompleteComponent', () => {
       ]
     }).compileComponents();
 
+    overlayContainer = TestBed.inject(OverlayContainer);
+    overlayContainerElement = overlayContainer.getContainerElement();
     fixture = TestBed.createComponent(AliasAutocompleteComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -161,5 +190,57 @@ describe('AliasAutocompleteComponent', () => {
 
     await new Promise(resolve => setTimeout(resolve, 10));
     expect(inputEl.scrollLeft).toBe(inputEl.scrollWidth);
+  });
+
+  it('should display resolvedValue in suggestions popover for dimension, number, and string tokens', () => {
+    component.isOpen.set(true);
+    component.filterQuery.set('');
+    fixture.detectChanges();
+
+    const buttons = Array.from(overlayContainerElement.querySelectorAll('button'));
+
+    // Find dimension token suggestion
+    const dimensionBtn = buttons.find(btn => btn.textContent?.includes('spacing.sm'));
+    expect(dimensionBtn).toBeDefined();
+    const dimensionResolved = dimensionBtn?.querySelector('.token-resolved-value');
+    expect(dimensionResolved).toBeTruthy();
+    expect(dimensionResolved?.textContent?.trim()).toBe('8px');
+
+    // Find number token suggestion
+    const numberBtn = buttons.find(btn => btn.textContent?.includes('opacity.half'));
+    expect(numberBtn).toBeDefined();
+    const numberResolved = numberBtn?.querySelector('.token-resolved-value');
+    expect(numberResolved).toBeTruthy();
+    expect(numberResolved?.textContent?.trim()).toBe('0.5');
+
+    // Find string token suggestion
+    const stringBtn = buttons.find(btn => btn.textContent?.includes('typography.font-family'));
+    expect(stringBtn).toBeDefined();
+    const stringResolved = stringBtn?.querySelector('.token-resolved-value');
+    expect(stringResolved).toBeTruthy();
+    expect(stringResolved?.textContent?.trim()).toBe('Inter, sans-serif');
+  });
+
+  it('should not display resolvedValue text for color tokens, only rendering the color swatch', () => {
+    component.isOpen.set(true);
+    component.filterQuery.set('');
+    fixture.detectChanges();
+
+    const buttons = Array.from(overlayContainerElement.querySelectorAll('button'));
+    const colorBtn = buttons.find(btn =>
+      btn.querySelector('.font-mono.font-medium')?.textContent?.trim() === 'color.brand.primary'
+    );
+    expect(colorBtn).toBeDefined();
+
+    // Color swatch should exist
+    const swatch = colorBtn?.querySelector('span.rounded-full');
+    expect(swatch).toBeTruthy();
+
+    // Resolved value text element should NOT exist for color tokens
+    const colorResolved = colorBtn?.querySelector('.token-resolved-value');
+    expect(colorResolved).toBeNull();
+
+    // Button text content should not display the raw color hex value
+    expect(colorBtn?.textContent).not.toContain('#3b82f6');
   });
 });
