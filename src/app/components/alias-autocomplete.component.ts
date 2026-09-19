@@ -45,6 +45,7 @@ import { expandTokensForSearch, filterSearchableTokens } from '../utils/token-se
           <button
             *ngFor="let token of matchingTokens(); let i = index"
             type="button"
+            (mousedown)="$event.preventDefault()"
             (click)="selectToken(token)"
             (mouseenter)="selectedIndex.set(i)"
             class="w-full px-2.5 py-1.5 text-left text-xs flex items-center justify-between space-x-2 transition-colors cursor-pointer"
