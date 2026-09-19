@@ -9,7 +9,7 @@ Aprimorar o mecanismo de busca do autocomplete (`token-search.util.ts`) para que
 
 **Status:** ready-for-agent
 
-- [ ] A query de busca é tokenizada por delimitadores (espaço, hífen, ponto).
-- [ ] Todos os termos digitados devem casar com o token (no caminho, alias ou valor), independente da ordem dos termos.
-- [ ] Testes unitários TDD em `token-search.util.spec.ts` cobrindo queries compostas com espaços, hífens, pontos e em ordens diferentes.
+- [x] A query de busca é tokenizada por delimitadores (espaço, hífen, ponto).
+- [x] Todos os termos digitados devem casar com o token (no caminho, alias ou valor), independente da ordem dos termos.
+- [x] Testes unitários TDD em `token-search.util.spec.ts` cobrindo queries compostas com espaços, hífens, pontos e em ordens diferentes.
 - [ ] Implementação aprovada pelo usuário antes de fechar a issue ou mergear.
