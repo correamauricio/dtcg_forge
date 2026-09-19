@@ -84,6 +84,39 @@ describe('token-search.util', () => {
       expect(matchToken(mockTokens[0], '  PRIMARY  ')).toBe(true);
       expect(matchToken(mockTokens[0], 'COLOR.BRAND.PRIMARY')).toBe(true);
     });
+
+    it('matches multiple terms separated by spaces in any order', () => {
+      expect(matchToken(mockTokens[0], 'brand primary')).toBe(true);
+      expect(matchToken(mockTokens[0], 'primary brand')).toBe(true);
+      expect(matchToken(mockTokens[0], 'primary color brand')).toBe(true);
+    });
+
+    it('matches multiple terms separated by hyphens or dots in any order', () => {
+      expect(matchToken(mockTokens[0], 'primary-brand')).toBe(true);
+      expect(matchToken(mockTokens[0], 'primary.brand')).toBe(true);
+      expect(matchToken(mockTokens[0], 'brand-primary')).toBe(true);
+      expect(matchToken(mockTokens[0], 'color.primary')).toBe(true);
+      expect(matchToken(mockTokens[3], '1-heading')).toBe(true);
+      expect(matchToken(mockTokens[3], 'heading.1')).toBe(true);
+    });
+
+    it('matches partial terms across delimiters in inverted order', () => {
+      expect(matchToken(mockTokens[0], 'prim bran')).toBe(true);
+      expect(matchToken(mockTokens[0], 'bran-prim')).toBe(true);
+      expect(matchToken(mockTokens[0], 'prim.col')).toBe(true);
+    });
+
+    it('matches across multiple fields (path, value, type)', () => {
+      expect(matchToken(mockTokens[0], 'primary #3b82f6')).toBe(true);
+      expect(matchToken(mockTokens[0], '#3b82f6 brand')).toBe(true);
+      expect(matchToken(mockTokens[1], 'brand blue 500')).toBe(true);
+    });
+
+    it('returns false if any of the terms does not match', () => {
+      expect(matchToken(mockTokens[0], 'brand primary nonexistent')).toBe(false);
+      expect(matchToken(mockTokens[0], 'primary-secondary')).toBe(false);
+      expect(matchToken(mockTokens[0], 'color.sm')).toBe(false);
+    });
   });
 
   describe('searchTokens', () => {
@@ -145,6 +178,47 @@ describe('token-search.util', () => {
       const expanded = expandTokensForSearch(mockTokens);
       const filtered = filterSearchableTokens(expanded, '#3b82f6');
       expect(filtered.some(f => f.path === 'color.brand.primary')).toBe(true);
+    });
+
+    it('filters tokens with multiple terms separated by spaces in any order', () => {
+      const expanded = expandTokensForSearch(mockTokens);
+      const filtered = filterSearchableTokens(expanded, 'primary brand');
+
+      expect(filtered[0].type).toBe('custom');
+      expect(filtered[0].path).toBe('primary brand');
+      expect(filtered.some(f => f.path === 'color.brand.primary')).toBe(true);
+      expect(filtered.some(f => f.path === 'color.brand.secondary')).toBe(false);
+    });
+
+    it('filters tokens with multiple terms separated by hyphens or dots', () => {
+      const expanded = expandTokensForSearch(mockTokens);
+      const filteredHyphen = filterSearchableTokens(expanded, 'primary-brand');
+      expect(filteredHyphen.some(f => f.path === 'color.brand.primary')).toBe(true);
+      expect(filteredHyphen.some(f => f.path === 'color.brand.secondary')).toBe(false);
+
+      const filteredDot = filterSearchableTokens(expanded, 'primary.brand');
+      expect(filteredDot.some(f => f.path === 'color.brand.primary')).toBe(true);
+      expect(filteredDot.some(f => f.path === 'color.brand.secondary')).toBe(false);
+
+      const filteredInvertedDot = filterSearchableTokens(expanded, 'color.primary');
+      expect(filteredInvertedDot.some(f => f.path === 'color.brand.primary')).toBe(true);
+    });
+
+    it('filters tokens matching partial terms across delimiters', () => {
+      const expanded = expandTokensForSearch(mockTokens);
+      const filtered = filterSearchableTokens(expanded, 'prim-bran');
+      expect(filtered.some(f => f.path === 'color.brand.primary')).toBe(true);
+      expect(filtered.some(f => f.path === 'color.brand.secondary')).toBe(false);
+
+      const filteredInverted = filterSearchableTokens(expanded, 'bran.prim');
+      expect(filteredInverted.some(f => f.path === 'color.brand.primary')).toBe(true);
+    });
+
+    it('filters tokens matching across path and value', () => {
+      const expanded = expandTokensForSearch(mockTokens);
+      const filtered = filterSearchableTokens(expanded, 'primary 3b82f6');
+      expect(filtered.some(f => f.path === 'color.brand.primary')).toBe(true);
+      expect(filtered.some(f => f.path === 'color.brand.secondary')).toBe(false);
     });
   });
 });
