@@ -7,8 +7,8 @@ Ao navegar com as setas do teclado (ArrowDown e ArrowUp) no popover de sugestõe
 
 **GitHub Issue:** https://github.com/correamauricio/dtcg_forge/issues/27
 
-**Status:** ready-for-agent
+**Status:** in-review
 
-- [ ] Quando o usuário pressiona ArrowDown ou ArrowUp, o item selecionado (`selectedIndex`) é rolado para a visualização visível caso esteja fora da área visível (`scrollIntoView({ block: 'nearest' })`).
-- [ ] Testes automatizados (TDD) em `alias-autocomplete.component.spec.ts` cobrindo a navegação e sincronização do scroll no popover.
+- [x] Quando o usuário pressiona ArrowDown ou ArrowUp, o item selecionado (`selectedIndex`) é rolado para a visualização visível caso esteja fora da área visível (`scrollIntoView({ block: 'nearest' })`).
+- [x] Testes automatizados (TDD) em `alias-autocomplete.component.spec.ts` cobrindo a navegação e sincronização do scroll no popover.
 - [ ] Implementação aprovada pelo usuário antes de fechar a issue ou mergear.

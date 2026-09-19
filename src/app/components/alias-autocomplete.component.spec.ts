@@ -162,4 +162,52 @@ describe('AliasAutocompleteComponent', () => {
     await new Promise(resolve => setTimeout(resolve, 10));
     expect(inputEl.scrollLeft).toBe(inputEl.scrollWidth);
   });
+
+  it('should scroll the selected item into view when navigating with ArrowDown and ArrowUp', () => {
+    const scrollSpy = vi.fn();
+    window.HTMLElement.prototype.scrollIntoView = scrollSpy;
+
+    component.isOpen.set(true);
+    component.filterQuery.set('brand');
+    fixture.detectChanges();
+
+    const maxIndex = component.matchingTokens().length - 1;
+
+    // ArrowDown moves from 0 to 1
+    const keyboardEventDown = new KeyboardEvent('keydown', { key: 'ArrowDown' });
+    component.onKeyDown(keyboardEventDown);
+
+    expect(component.selectedIndex()).toBe(1);
+    expect(scrollSpy).toHaveBeenCalledWith({ block: 'nearest' });
+    expect((scrollSpy.mock.contexts[0] as HTMLElement).getAttribute('data-index')).toBe('1');
+
+    scrollSpy.mockClear();
+
+    // ArrowUp moves from 1 back to 0
+    const keyboardEventUp = new KeyboardEvent('keydown', { key: 'ArrowUp' });
+    component.onKeyDown(keyboardEventUp);
+
+    expect(component.selectedIndex()).toBe(0);
+    expect(scrollSpy).toHaveBeenCalledWith({ block: 'nearest' });
+    expect((scrollSpy.mock.contexts[0] as HTMLElement).getAttribute('data-index')).toBe('0');
+
+    scrollSpy.mockClear();
+
+    // ArrowUp from 0 wraps to the last item
+    component.onKeyDown(keyboardEventUp);
+
+    expect(component.selectedIndex()).toBe(maxIndex);
+    expect(scrollSpy).toHaveBeenCalledWith({ block: 'nearest' });
+    expect((scrollSpy.mock.contexts[0] as HTMLElement).getAttribute('data-index')).toBe(String(maxIndex));
+
+    scrollSpy.mockClear();
+
+    // ArrowDown from last item wraps back to 0
+    component.onKeyDown(keyboardEventDown);
+
+    expect(component.selectedIndex()).toBe(0);
+    expect(scrollSpy).toHaveBeenCalledWith({ block: 'nearest' });
+    expect((scrollSpy.mock.contexts[0] as HTMLElement).getAttribute('data-index')).toBe('0');
+  });
 });
+
