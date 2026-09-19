@@ -209,5 +209,33 @@ describe('AliasAutocompleteComponent', () => {
     expect(scrollSpy).toHaveBeenCalledWith({ block: 'nearest' });
     expect((scrollSpy.mock.contexts[0] as HTMLElement).getAttribute('data-index')).toBe('0');
   });
+
+  it('should prevent default on mousedown on suggestion item to avoid premature blur', () => {
+    component.isOpen.set(true);
+    fixture.detectChanges();
+
+    const button = document.querySelector('.cdk-overlay-container button') as HTMLButtonElement;
+    expect(button).toBeTruthy();
+
+    const mousedownEvent = new MouseEvent('mousedown', { cancelable: true, bubbles: true });
+    button.dispatchEvent(mousedownEvent);
+
+    expect(mousedownEvent.defaultPrevented).toBe(true);
+  });
+
+  it('should select token immediately with a single click and emit valueCommit', () => {
+    const commitSpy = vi.spyOn(component.valueCommit, 'emit');
+    component.isOpen.set(true);
+    fixture.detectChanges();
+
+    const button = document.querySelector('.cdk-overlay-container button') as HTMLButtonElement;
+    expect(button).toBeTruthy();
+
+    button.click();
+
+    expect(component.value).toBe('{color.brand.primary}');
+    expect(commitSpy).toHaveBeenCalledWith('{color.brand.primary}');
+    expect(component.isOpen()).toBe(false);
+  });
 });
 
