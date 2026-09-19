@@ -9,6 +9,6 @@ Corrigir o comportamento de seleção de itens por clique no popover do `AliasAu
 
 **Status:** ready-for-agent
 
-- [ ] Clicar uma única vez sobre um item da lista de sugestões seleciona o token imediatamente e fecha o popover.
-- [ ] Testes unitários com TDD verificando a seleção com clique único e emissão correta de `valueCommit`.
+- [x] Clicar uma única vez sobre um item da lista de sugestões seleciona o token imediatamente e fecha o popover.
+- [x] Testes unitários com TDD verificando a seleção com clique único e emissão correta de `valueCommit`.
 - [ ] Implementação aprovada pelo usuário antes de fechar a issue ou mergear.
