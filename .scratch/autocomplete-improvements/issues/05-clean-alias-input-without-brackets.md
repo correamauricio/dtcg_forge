@@ -9,7 +9,8 @@ Nos campos de input de tokens na interface, não exibir as chaves `{` e `}` ao r
 
 **Status:** ready-for-agent
 
-- [ ] O input do `AliasAutocompleteComponent` e dos nós de tokens (`PrimitiveNodeComponent`, `ColorNodeComponent`) exibem o caminho do alias limpo, sem as chaves `{}`.
-- [ ] A seleção pelo autocomplete ou commit de valores preserva a integridade sem duplicar chaves nem corromper tokens brutos ou numéricos.
-- [ ] Testes unitários TDD cobrindo a exibição limpa e a edição sem chaves visíveis.
+- [x] O input do `AliasAutocompleteComponent` e dos nós de tokens (`PrimitiveNodeComponent`, `ColorNodeComponent`) exibem o caminho do alias limpo, sem as chaves `{}`.
+- [x] A seleção pelo autocomplete ou commit de valores preserva a integridade sem duplicar chaves nem corromper tokens brutos ou numéricos.
+- [x] Testes unitários TDD cobrindo a exibição limpa e a edição sem chaves visíveis.
 - [ ] Implementação aprovada pelo usuário antes de fechar a issue ou mergear.
+
