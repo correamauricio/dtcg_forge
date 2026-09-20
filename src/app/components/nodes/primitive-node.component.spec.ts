@@ -53,4 +53,40 @@ describe('PrimitiveNodeComponent', () => {
     expect(emitSpy).toHaveBeenCalledTimes(1);
     expect(emitSpy).toHaveBeenCalledWith({ path: ['path', 'to', 'token'], value: '16px' });
   });
+
+  it('should display clean alias path in the input without curly braces when token value is an alias', async () => {
+    component.token = {
+      value: '{spacing.md}',
+      originalPath: ['spacing', 'md'],
+      path: 'spacing.md'
+    } as any;
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const inputEl: HTMLInputElement = fixture.nativeElement.querySelector('input');
+    expect(inputEl.value).toBe('spacing.md');
+  });
+
+  it('should preserve alias semantics upon committing an alias update', () => {
+    const emitSpy = vi.spyOn(component.updateToken, 'emit');
+
+    component.onValueCommit('{spacing.lg}');
+
+    expect(emitSpy).toHaveBeenCalledWith({
+      path: ['path', 'to', 'token'],
+      value: '{spacing.lg}'
+    });
+  });
+
+  it('should preserve number type when committing a numeric string', () => {
+    const emitSpy = vi.spyOn(component.updateToken, 'emit');
+
+    component.onValueCommit('42');
+
+    expect(emitSpy).toHaveBeenCalledWith({
+      path: ['path', 'to', 'token'],
+      value: 42
+    });
+  });
 });
+

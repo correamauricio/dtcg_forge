@@ -318,5 +318,80 @@ describe('AliasAutocompleteComponent', () => {
     // Button text content should not display the raw color hex value
     expect(colorBtn?.textContent).not.toContain('#3b82f6');
   });
+
+  describe('Clean alias path display without curly braces', () => {
+    it('should display the clean token path without curly braces when value is an alias', async () => {
+      component.value = '{color.brand.primary}';
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const inputEl: HTMLInputElement = fixture.nativeElement.querySelector('input');
+      expect(inputEl.value).toBe('color.brand.primary');
+    });
+
+    it('should display raw literals unchanged in the input', async () => {
+      component.value = '#3b82f6';
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const inputEl: HTMLInputElement = fixture.nativeElement.querySelector('input');
+      expect(inputEl.value).toBe('#3b82f6');
+
+      component.value = '16px';
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(inputEl.value).toBe('16px');
+    });
+
+    it('should display clean path in input after selecting a token from autocomplete while committing alias', async () => {
+      const commitSpy = vi.spyOn(component.valueCommit, 'emit');
+
+      component.selectToken({ path: 'color.brand.primary', type: 'color' });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const inputEl: HTMLInputElement = fixture.nativeElement.querySelector('input');
+      expect(inputEl.value).toBe('color.brand.primary');
+      expect(component.value).toBe('{color.brand.primary}');
+      expect(commitSpy).toHaveBeenCalledWith('{color.brand.primary}');
+    });
+
+    it('should preserve alias semantics when editing an existing alias and blurring without changes', () => {
+      const commitSpy = vi.spyOn(component.valueCommit, 'emit');
+      component.value = '{color.brand.primary}';
+      fixture.detectChanges();
+
+      component.onBlur();
+
+      expect(commitSpy).toHaveBeenCalledWith('{color.brand.primary}');
+    });
+
+    it('should commit token path as alias when user types clean path matching a known token', () => {
+      const commitSpy = vi.spyOn(component.valueCommit, 'emit');
+
+      component.onInputChange('color.brand.secondary');
+      component.onBlur();
+
+      expect(commitSpy).toHaveBeenCalledWith('{color.brand.secondary}');
+    });
+
+    it('should commit raw literal as-is when user types a non-token value', () => {
+      const commitSpy = vi.spyOn(component.valueCommit, 'emit');
+
+      component.onInputChange('24px');
+      component.onBlur();
+
+      expect(commitSpy).toHaveBeenCalledWith('24px');
+    });
+
+    it('should normalize and not duplicate brackets when user manually enters curly braces', () => {
+      const commitSpy = vi.spyOn(component.valueCommit, 'emit');
+
+      component.onInputChange('{color.brand.secondary}');
+      component.onBlur();
+
+      expect(commitSpy).toHaveBeenCalledWith('{color.brand.secondary}');
+    });
+  });
 });
 

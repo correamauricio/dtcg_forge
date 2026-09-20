@@ -6,6 +6,7 @@ import { FlatToken } from '../models/token.model';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { PopoverComponent } from './ui/popover.component';
 import { expandTokensForSearch, filterSearchableTokens } from '../utils/token-search.util';
+import { cleanAlias, formatCommitValue } from '../utils/alias-resolver.util';
 
 @Component({
   selector: 'app-alias-autocomplete',
@@ -19,7 +20,7 @@ import { expandTokensForSearch, filterSearchableTokens } from '../utils/token-se
       <input
         #inputRef
         type="text"
-        [ngModel]="value"
+        [ngModel]="displayValue"
         (ngModelChange)="onInputChange($event)"
         (focus)="onFocus()"
         (blur)="onBlur()"
@@ -122,6 +123,15 @@ export class AliasAutocompleteComponent implements AfterViewInit, OnChanges {
     }
   }
 
+  inputValue?: string;
+
+  get displayValue(): string {
+    if (this.inputValue !== undefined) {
+      return this.inputValue;
+    }
+    return cleanAlias(this.value);
+  }
+
   matchingTokens = computed(() => {
     const all = this.tokenService.allFlatTokens();
     const query = this.filterQuery();
@@ -136,10 +146,12 @@ export class AliasAutocompleteComponent implements AfterViewInit, OnChanges {
   }
 
   ngOnChanges() {
+    this.inputValue = undefined;
     this.scrollToEnd();
   }
 
   onInputChange(val: string) {
+    this.inputValue = val;
     this.value = val;
     this.valueChange.emit(val);
     this.extractQuery(val);
@@ -148,14 +160,27 @@ export class AliasAutocompleteComponent implements AfterViewInit, OnChanges {
   }
 
   onFocus() {
-    this.extractQuery(this.value);
+    this.extractQuery(this.inputValue !== undefined ? this.inputValue : this.value);
     this.isOpen.set(true);
     this.selectedIndex.set(0);
   }
 
   onBlur() {
-    this.valueCommit.emit(this.value);
+    this.commitCurrentValue();
     this.scrollToEnd();
+  }
+
+  commitCurrentValue() {
+    const raw = this.inputValue !== undefined ? this.inputValue : this.value;
+    const finalValue = formatCommitValue(
+      raw,
+      this.tokenService.allFlatTokens(),
+      this.value
+    );
+    this.value = finalValue;
+    this.inputValue = undefined;
+    this.valueCommit.emit(finalValue);
+    this.isOpen.set(false);
   }
 
   scrollToEnd() {
@@ -182,7 +207,7 @@ export class AliasAutocompleteComponent implements AfterViewInit, OnChanges {
         return;
       }
     }
-    this.filterQuery.set(val);
+    this.filterQuery.set(cleanAlias(val));
   }
 
   selectToken(token: any) {
@@ -191,6 +216,7 @@ export class AliasAutocompleteComponent implements AfterViewInit, OnChanges {
       finalValue = `{${token.path}}`;
     }
     this.value = finalValue;
+    this.inputValue = undefined;
     this.valueChange.emit(finalValue);
     this.valueCommit.emit(finalValue);
     this.isOpen.set(false);
@@ -202,7 +228,7 @@ export class AliasAutocompleteComponent implements AfterViewInit, OnChanges {
       if (event.key === 'ArrowDown' || event.key === '{') {
         this.isOpen.set(true);
       } else if (event.key === 'Enter') {
-        this.valueCommit.emit(this.value);
+        this.commitCurrentValue();
       }
       return;
     }
@@ -228,7 +254,7 @@ export class AliasAutocompleteComponent implements AfterViewInit, OnChanges {
         if (selected) {
           this.selectToken(selected);
         } else {
-          this.valueCommit.emit(this.value);
+          this.commitCurrentValue();
         }
         break;
 

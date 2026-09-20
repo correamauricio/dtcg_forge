@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createAliasResolver, resolveAllFlatTokens, resolveFileFlatTokens } from './alias-resolver.util';
+import { createAliasResolver, resolveAllFlatTokens, resolveFileFlatTokens, cleanAlias, isAlias, formatCommitValue } from './alias-resolver.util';
 import { FlatToken } from '../models/token.model';
 
 describe('alias-resolver.util', () => {
@@ -295,4 +295,81 @@ describe('alias-resolver.util', () => {
       expect(result[0].path).toBe('component.padding');
     });
   });
+
+  describe('cleanAlias', () => {
+    it('should strip enclosing curly braces from alias reference string', () => {
+      expect(cleanAlias('{color.brand.primary}')).toBe('color.brand.primary');
+      expect(cleanAlias('{spacing.md}')).toBe('spacing.md');
+      expect(cleanAlias('{ typography.heading.1 }')).toBe('typography.heading.1');
+    });
+
+    it('should leave non-alias string values unchanged', () => {
+      expect(cleanAlias('#3b82f6')).toBe('#3b82f6');
+      expect(cleanAlias('16px')).toBe('16px');
+      expect(cleanAlias('1px solid {color.border}')).toBe('1px solid {color.border}');
+    });
+
+    it('should handle numeric and empty or nullish values gracefully', () => {
+      expect(cleanAlias(42)).toBe('42');
+      expect(cleanAlias(0)).toBe('0');
+      expect(cleanAlias('')).toBe('');
+      expect(cleanAlias(null)).toBe('');
+      expect(cleanAlias(undefined)).toBe('');
+    });
+  });
+
+  describe('isAlias', () => {
+    it('should return true for valid alias reference strings', () => {
+      expect(isAlias('{color.brand.primary}')).toBe(true);
+      expect(isAlias('{spacing.md}')).toBe(true);
+      expect(isAlias('{ token }')).toBe(true);
+    });
+
+    it('should return false for non-alias values', () => {
+      expect(isAlias('color.brand.primary')).toBe(false);
+      expect(isAlias('#3b82f6')).toBe(false);
+      expect(isAlias('16px')).toBe(false);
+      expect(isAlias(42)).toBe(false);
+      expect(isAlias(null)).toBe(false);
+      expect(isAlias(undefined)).toBe(false);
+    });
+  });
+
+  describe('formatCommitValue', () => {
+    const mockTokens = [
+      { path: 'color.brand.primary' },
+      { path: 'spacing.md' }
+    ];
+
+    it('should wrap known token path in curly braces when committed without braces', () => {
+      expect(formatCommitValue('color.brand.primary', mockTokens)).toBe('{color.brand.primary}');
+      expect(formatCommitValue('spacing.md', mockTokens)).toBe('{spacing.md}');
+    });
+
+    it('should preserve curly braces when explicitly typed by the user', () => {
+      expect(formatCommitValue('{color.brand.primary}', mockTokens)).toBe('{color.brand.primary}');
+      expect(formatCommitValue('{custom.token}', mockTokens)).toBe('{custom.token}');
+    });
+
+    it('should normalize and prevent duplicate curly braces', () => {
+      expect(formatCommitValue('{{color.brand.primary}}', mockTokens)).toBe('{color.brand.primary}');
+      expect(formatCommitValue('{{{spacing.md}}}', mockTokens)).toBe('{spacing.md}');
+    });
+
+    it('should keep raw literal values uncorrupted without adding braces', () => {
+      expect(formatCommitValue('#ffffff', mockTokens)).toBe('#ffffff');
+      expect(formatCommitValue('16px', mockTokens)).toBe('16px');
+      expect(formatCommitValue('42', mockTokens)).toBe('42');
+    });
+
+    it('should preserve alias semantics if the field originally had an alias and value matches clean path', () => {
+      expect(formatCommitValue('unknown.alias', [], '{unknown.alias}')).toBe('{unknown.alias}');
+    });
+
+    it('should handle empty input cleanly', () => {
+      expect(formatCommitValue('', mockTokens)).toBe('');
+      expect(formatCommitValue('   ', mockTokens)).toBe('');
+    });
+  });
 });
+
