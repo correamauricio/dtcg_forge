@@ -7,10 +7,10 @@ Nos campos de input de tokens na interface, não exibir as chaves `{` e `}` ao r
 
 **GitHub Issue:** https://github.com/correamauricio/dtcg_forge/issues/31
 
-**Status:** ready-for-agent
+**Status:** approved
 
 - [x] O input do `AliasAutocompleteComponent` e dos nós de tokens (`PrimitiveNodeComponent`, `ColorNodeComponent`) exibem o caminho do alias limpo, sem as chaves `{}`.
 - [x] A seleção pelo autocomplete ou commit de valores preserva a integridade sem duplicar chaves nem corromper tokens brutos ou numéricos.
 - [x] Testes unitários TDD cobrindo a exibição limpa e a edição sem chaves visíveis.
-- [ ] Implementação aprovada pelo usuário antes de fechar a issue ou mergear.
+- [x] Implementação aprovada pelo usuário antes de fechar a issue ou mergear.
 

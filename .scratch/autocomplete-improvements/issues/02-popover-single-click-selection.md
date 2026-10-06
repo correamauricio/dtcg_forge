@@ -7,8 +7,8 @@ Corrigir o comportamento de seleção de itens por clique no popover do `AliasAu
 
 **GitHub Issue:** https://github.com/correamauricio/dtcg_forge/issues/28
 
-**Status:** ready-for-agent
+**Status:** approved
 
 - [x] Clicar uma única vez sobre um item da lista de sugestões seleciona o token imediatamente e fecha o popover.
 - [x] Testes unitários com TDD verificando a seleção com clique único e emissão correta de `valueCommit`.
-- [ ] Implementação aprovada pelo usuário antes de fechar a issue ou mergear.
+- [x] Implementação aprovada pelo usuário antes de fechar a issue ou mergear.
