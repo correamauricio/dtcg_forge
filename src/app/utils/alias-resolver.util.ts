@@ -227,3 +227,60 @@ export function resolveFileFlatTokens(
     resolvedValue: resolveAlias(token.value)
   }));
 }
+
+/**
+ * Checks whether a given value is an alias reference string (e.g. "{color.brand.primary}").
+ */
+export function isAlias(value: unknown): boolean {
+  if (typeof value !== 'string') return false;
+  return /^\{\s*[^}]+\s*\}$/.test(value.trim());
+}
+
+/**
+ * Strips enclosing curly braces from an alias reference string (e.g. "{color.brand.primary}" -> "color.brand.primary").
+ * If the value is not an alias reference, returns the string representation of the value.
+ */
+export function cleanAlias(value: unknown): string {
+  if (value == null) return '';
+  const str = String(value);
+  const match = str.trim().match(/^\{\s*([^}]+?)\s*\}$/);
+  return match ? match[1] : str;
+}
+
+/**
+ * Normalizes and formats a token input value upon commit.
+ * - Wraps in curly braces if it matches a known token path or was an alias.
+ * - Strips redundant duplicated braces (e.g. "{{...}}").
+ * - Preserves raw literal values (numbers, hex colors, dimensions) without enclosing in braces.
+ */
+export function formatCommitValue(
+  val: string,
+  allTokens: { path: string }[] = [],
+  currentValue?: string
+): string {
+  if (!val || val.trim() === '') {
+    return '';
+  }
+  const trimmed = val.trim();
+
+  // 1. If explicitly enclosed in braces (e.g. "{color.primary}" or "{{color.primary}}")
+  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+    const inner = trimmed.replace(/^\{+/, '').replace(/\}+$/, '').trim();
+    return `{${inner}}`;
+  }
+
+  // 2. If it matches a known token path in allTokens
+  const tokenExists = allTokens.some(t => t.path === trimmed);
+  if (tokenExists) {
+    return `{${trimmed}}`;
+  }
+
+  // 3. If current value was an alias and clean matches
+  if (currentValue && isAlias(currentValue) && cleanAlias(currentValue) === trimmed) {
+    return `{${trimmed}}`;
+  }
+
+  // 4. Otherwise, it is a raw literal (hex, dimension, number, text)
+  return trimmed;
+}
+

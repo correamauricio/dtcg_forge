@@ -6,6 +6,7 @@ import { FlatToken } from '../models/token.model';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { PopoverComponent } from './ui/popover.component';
 import { expandTokensForSearch, filterSearchableTokens } from '../utils/token-search.util';
+import { cleanAlias, formatCommitValue } from '../utils/alias-resolver.util';
 
 @Component({
   selector: 'app-alias-autocomplete',
@@ -19,7 +20,7 @@ import { expandTokensForSearch, filterSearchableTokens } from '../utils/token-se
       <input
         #inputRef
         type="text"
-        [ngModel]="value"
+        [ngModel]="displayValue"
         (ngModelChange)="onInputChange($event)"
         (focus)="onFocus()"
         (blur)="onBlur()"
@@ -36,7 +37,10 @@ import { expandTokensForSearch, filterSearchableTokens } from '../utils/token-se
         width="100%"
         (closed)="onPopoverClosed($event)"
       >
-        <div class="max-h-56 bg-gray-900 border border-gray-700 rounded-md shadow-2xl overflow-y-auto custom-scrollbar py-1">
+        <div
+          [id]="popoverId"
+          class="max-h-56 bg-gray-900 border border-gray-700 rounded-md shadow-2xl overflow-y-auto custom-scrollbar py-1"
+        >
           <div class="px-2 py-1 text-[10px] uppercase tracking-wider text-gray-400 font-semibold border-b border-gray-800 flex justify-between items-center sticky top-0 bg-gray-900 z-10">
             <span>Alias Suggestions</span>
             <span class="text-blue-400 font-normal lowercase">{{ matchingTokens().length }} available</span>
@@ -45,6 +49,9 @@ import { expandTokensForSearch, filterSearchableTokens } from '../utils/token-se
           <button
             *ngFor="let token of matchingTokens(); let i = index"
             type="button"
+            [id]="popoverId + '-item-' + i"
+            [attr.data-index]="i"
+            (mousedown)="$event.preventDefault()"
             (click)="selectToken(token)"
             (mouseenter)="selectedIndex.set(i)"
             class="w-full px-2.5 py-1.5 text-left text-xs flex items-center justify-between space-x-2 transition-colors cursor-pointer"
@@ -68,7 +75,15 @@ import { expandTokensForSearch, filterSearchableTokens } from '../utils/token-se
               </div>
             </div>
 
-            <div class="flex items-center space-x-1 shrink-0">
+            <div class="flex items-center space-x-1.5 shrink-0">
+              <span
+                *ngIf="token.type !== 'color' && token.resolvedValue !== undefined && token.resolvedValue !== null"
+                class="token-resolved-value text-[11px] font-mono truncate max-w-[120px]"
+                [class.text-blue-200]="i === selectedIndex()"
+                [class.text-gray-400]="i !== selectedIndex()"
+              >
+                {{ token.resolvedValue }}
+              </span>
               <span
                 class="px-1 py-0.5 text-[9px] rounded font-mono uppercase font-semibold"
                 [class.bg-blue-950]="i !== selectedIndex()"
@@ -99,6 +114,23 @@ export class AliasAutocompleteComponent implements AfterViewInit, OnChanges {
   isOpen = signal<boolean>(false);
   filterQuery = signal<string>('');
   selectedIndex = signal<number>(0);
+  readonly popoverId = `alias-popover-${Math.random().toString(36).substring(2, 9)}`;
+
+  private scrollToSelectedItem() {
+    const el = document.getElementById(`${this.popoverId}-item-${this.selectedIndex()}`);
+    if (el && typeof el.scrollIntoView === 'function') {
+      el.scrollIntoView({ block: 'nearest' });
+    }
+  }
+
+  inputValue?: string;
+
+  get displayValue(): string {
+    if (this.inputValue !== undefined) {
+      return this.inputValue;
+    }
+    return cleanAlias(this.value);
+  }
 
   matchingTokens = computed(() => {
     const all = this.tokenService.allFlatTokens();
@@ -114,10 +146,12 @@ export class AliasAutocompleteComponent implements AfterViewInit, OnChanges {
   }
 
   ngOnChanges() {
+    this.inputValue = undefined;
     this.scrollToEnd();
   }
 
   onInputChange(val: string) {
+    this.inputValue = val;
     this.value = val;
     this.valueChange.emit(val);
     this.extractQuery(val);
@@ -126,14 +160,27 @@ export class AliasAutocompleteComponent implements AfterViewInit, OnChanges {
   }
 
   onFocus() {
-    this.extractQuery(this.value);
+    this.extractQuery(this.inputValue !== undefined ? this.inputValue : this.value);
     this.isOpen.set(true);
     this.selectedIndex.set(0);
   }
 
   onBlur() {
-    this.valueCommit.emit(this.value);
+    this.commitCurrentValue();
     this.scrollToEnd();
+  }
+
+  commitCurrentValue() {
+    const raw = this.inputValue !== undefined ? this.inputValue : this.value;
+    const finalValue = formatCommitValue(
+      raw,
+      this.tokenService.allFlatTokens(),
+      this.value
+    );
+    this.value = finalValue;
+    this.inputValue = undefined;
+    this.valueCommit.emit(finalValue);
+    this.isOpen.set(false);
   }
 
   scrollToEnd() {
@@ -160,7 +207,7 @@ export class AliasAutocompleteComponent implements AfterViewInit, OnChanges {
         return;
       }
     }
-    this.filterQuery.set(val);
+    this.filterQuery.set(cleanAlias(val));
   }
 
   selectToken(token: any) {
@@ -169,6 +216,7 @@ export class AliasAutocompleteComponent implements AfterViewInit, OnChanges {
       finalValue = `{${token.path}}`;
     }
     this.value = finalValue;
+    this.inputValue = undefined;
     this.valueChange.emit(finalValue);
     this.valueCommit.emit(finalValue);
     this.isOpen.set(false);
@@ -180,7 +228,7 @@ export class AliasAutocompleteComponent implements AfterViewInit, OnChanges {
       if (event.key === 'ArrowDown' || event.key === '{') {
         this.isOpen.set(true);
       } else if (event.key === 'Enter') {
-        this.valueCommit.emit(this.value);
+        this.commitCurrentValue();
       }
       return;
     }
@@ -191,11 +239,13 @@ export class AliasAutocompleteComponent implements AfterViewInit, OnChanges {
       case 'ArrowDown':
         event.preventDefault();
         this.selectedIndex.update(idx => (idx < maxIndex ? idx + 1 : 0));
+        this.scrollToSelectedItem();
         break;
 
       case 'ArrowUp':
         event.preventDefault();
         this.selectedIndex.update(idx => (idx > 0 ? idx - 1 : maxIndex));
+        this.scrollToSelectedItem();
         break;
 
       case 'Enter':
@@ -204,7 +254,7 @@ export class AliasAutocompleteComponent implements AfterViewInit, OnChanges {
         if (selected) {
           this.selectToken(selected);
         } else {
-          this.valueCommit.emit(this.value);
+          this.commitCurrentValue();
         }
         break;
 
