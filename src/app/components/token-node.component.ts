@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, forwardRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FlatToken } from '../models/token.model';
@@ -17,7 +17,7 @@ import { TokenGroupAnalyzerService } from '../services/token-group-analyzer.serv
     PrimitiveNodeComponent,
     ColorNodeComponent,
     CompositeNodeComponent,
-    PrimitiveGroupNodeComponent
+    forwardRef(() => PrimitiveGroupNodeComponent)
   ],
   template: `
     <div [class.pl-2]="depth > 0" [class.border-l]="depth > 0" class="border-gray-800/80 ml-1">

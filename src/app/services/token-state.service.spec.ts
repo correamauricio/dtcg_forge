@@ -20,6 +20,8 @@ describe('TokenStateService', () => {
       ]
     });
     service = TestBed.inject(TokenStateService);
+    // Para manter a compatibilidade dos testes existentes que assumem o preset carregado
+    service.loadPreset();
   });
 
   afterEach(() => {
@@ -44,7 +46,46 @@ describe('TokenStateService', () => {
     await Promise.resolve();
     
     expect(mockStorageService.saveWorkspace).toHaveBeenCalledTimes(1);
+    expect(mockStorageService.saveWorkspace).toHaveBeenCalledTimes(1);
     expect(service.saveStatus()).toBe('saved');
+  });
+
+  describe('Session Initialization', () => {
+    it('should return "new" when dtcg_forge_session_active is not set', async () => {
+      sessionStorage.removeItem('dtcg_forge_session_active');
+      const result = await service.initializeSession();
+      expect(result).toBe('new');
+      expect(mockStorageService.loadWorkspace).not.toHaveBeenCalled();
+    });
+
+    it('should return "restored" and load workspace from storage if session flag exists', async () => {
+      sessionStorage.setItem('dtcg_forge_session_active', 'true');
+      const mockWorkspace = {
+        files: [{ name: 'test.json', content: {} }],
+        activeFileName: 'test.json',
+        selectedVariants: {},
+        disabledFileNames: [],
+        selectedTokenPath: null,
+        updatedAt: 123
+      };
+      mockStorageService.loadWorkspace.mockResolvedValueOnce(mockWorkspace);
+      
+      const result = await service.initializeSession();
+      expect(result).toBe('restored');
+      expect(mockStorageService.loadWorkspace).toHaveBeenCalledTimes(1);
+      
+      // Verify signals were updated
+      expect(service.files()).toEqual(mockWorkspace.files);
+      expect(service.activeFileName()).toBe('test.json');
+    });
+
+    it('should return "new" even if session active if storage is empty', async () => {
+      sessionStorage.setItem('dtcg_forge_session_active', 'true');
+      mockStorageService.loadWorkspace.mockResolvedValueOnce(null);
+      
+      const result = await service.initializeSession();
+      expect(result).toBe('new');
+    });
   });
 
   it('should preserve custom metadata and extension properties when updating a token value', () => {

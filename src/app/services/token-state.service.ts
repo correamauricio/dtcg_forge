@@ -56,9 +56,26 @@ export class TokenStateService {
         this.saveSubject.next();
       }
     });
+  }
 
-    this.loadPreset();
-    this.initialLoadDone = true;
+  async initializeSession(): Promise<'restored' | 'new'> {
+    const isSessionActive = sessionStorage.getItem('dtcg_forge_session_active');
+    
+    if (isSessionActive) {
+      const workspace = await this.workspaceStorage.loadWorkspace();
+      if (workspace) {
+        this._files.set(workspace.files);
+        this._activeFileName.set(workspace.activeFileName);
+        this._selectedTokenPath.set(workspace.selectedTokenPath);
+        this._selectedVariants.set(workspace.selectedVariants);
+        this._disabledFileNames.set(new Set(workspace.disabledFileNames));
+        
+        this.initialLoadDone = true;
+        return 'restored';
+      }
+    }
+    
+    return 'new';
   }
 
   private async performSave() {
@@ -147,6 +164,17 @@ export class TokenStateService {
       { name: 'semantics-dark.json', content: semanticsDark }
     ]);
     this._activeFileName.set('semantics.json');
+    this.initialLoadDone = true;
+  }
+
+  initEmptyWorkspace() {
+    this._files.set([]);
+    this._activeFileName.set('');
+    this._selectedTokenPath.set(null);
+    this._selectedVariants.set({});
+    this._disabledFileNames.set(new Set());
+    this._searchQuery.set('');
+    this.initialLoadDone = true;
   }
 
   setDuplicateTokensInfo(duplicates: string[]) {
