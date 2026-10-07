@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { signal } from '@angular/core';
 import { FileExplorerComponent } from './file-explorer.component';
 import { TokenService } from '../services/token.service';
+import { TokenStateService } from '../services/token-state.service';
 
 describe('FileExplorerComponent', () => {
   let component: FileExplorerComponent;
@@ -34,10 +35,16 @@ describe('FileExplorerComponent', () => {
       saveStatus: signal('saved')
     };
 
+    const tokenStateMock = {
+      initEmptyWorkspace: vi.fn(),
+      loadPreset: vi.fn()
+    };
+
     await TestBed.configureTestingModule({
       imports: [FileExplorerComponent],
       providers: [
-        { provide: TokenService, useValue: tokenServiceMock }
+        { provide: TokenService, useValue: tokenServiceMock },
+        { provide: TokenStateService, useValue: tokenStateMock }
       ]
     }).compileComponents();
 
@@ -260,6 +267,58 @@ describe('FileExplorerComponent', () => {
       const indicator = el.querySelector('[data-testid="save-status-indicator"]');
       expect(indicator).toBeTruthy();
       expect(indicator?.textContent).toContain('Salvando...');
+    });
+  });
+
+  describe('Workspace Actions Menu and Confirmation Modal', () => {
+    it('should toggle workspace menu', () => {
+      expect(component.isWorkspaceMenuOpen()).toBe(false);
+      component.toggleWorkspaceMenu(new MouseEvent('click'));
+      expect(component.isWorkspaceMenuOpen()).toBe(true);
+    });
+
+    it('should show confirmation modal when requesting preset with existing files', () => {
+      component.requestWorkspaceAction('preset');
+      expect(component.pendingWorkspaceAction()).toBe('preset');
+      expect(component.isWorkspaceMenuOpen()).toBe(false);
+    });
+
+    it('should execute directly without modal if workspace is empty', () => {
+      const tokenStateMock = TestBed.inject(TokenStateService);
+      tokenServiceMock.files.set([]);
+      component.requestWorkspaceAction('new');
+      expect(component.pendingWorkspaceAction()).toBe(null);
+      expect(tokenStateMock.initEmptyWorkspace).toHaveBeenCalled();
+    });
+
+    it('should call onExportAll and action when confirming with backup', () => {
+      const tokenStateMock = TestBed.inject(TokenStateService);
+      const exportSpy = vi.spyOn(component, 'onExportAll').mockImplementation(() => {});
+      
+      component.requestWorkspaceAction('preset');
+      component.confirmWorkspaceAction(true);
+      
+      expect(exportSpy).toHaveBeenCalled();
+      expect(tokenStateMock.loadPreset).toHaveBeenCalled();
+      expect(component.pendingWorkspaceAction()).toBe(null);
+    });
+
+    it('should only call action when confirming without backup', () => {
+      const tokenStateMock = TestBed.inject(TokenStateService);
+      const exportSpy = vi.spyOn(component, 'onExportAll').mockImplementation(() => {});
+      
+      component.requestWorkspaceAction('new');
+      component.confirmWorkspaceAction(false);
+      
+      expect(exportSpy).not.toHaveBeenCalled();
+      expect(tokenStateMock.initEmptyWorkspace).toHaveBeenCalled();
+      expect(component.pendingWorkspaceAction()).toBe(null);
+    });
+
+    it('should cancel workspace action', () => {
+      component.requestWorkspaceAction('preset');
+      component.cancelWorkspaceAction();
+      expect(component.pendingWorkspaceAction()).toBe(null);
     });
   });
 });

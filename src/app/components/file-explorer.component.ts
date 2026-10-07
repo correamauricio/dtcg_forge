@@ -2,6 +2,7 @@ import { Component, computed, inject, signal, HostListener } from '@angular/core
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TokenService } from '../services/token.service';
+import { TokenStateService } from '../services/token-state.service';
 import { TokenFile, VariantGroup } from '../models/token.model';
 
 @Component({
@@ -49,11 +50,23 @@ import { TokenFile, VariantGroup } from '../models/token.model';
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
             </svg>
           </button>
+          
+          <button
+            data-testid="workspace-options-btn"
+            (click)="toggleWorkspaceMenu($event)"
+            title="Opções do Workspace"
+            class="p-1.5 hover:bg-gray-800 rounded text-gray-400 hover:text-white transition-colors cursor-pointer relative"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+          </button>
         </div>
       </div>
 
       <!-- Import Button Area -->
-      <div class="p-2 border-b border-gray-800/80 bg-gray-900/50">
+      <div class="p-2 border-b border-gray-800/80 bg-gray-900/50 relative">
         <label class="w-full py-1.5 px-2 bg-gray-800/70 hover:bg-gray-800 border border-gray-700/60 rounded flex items-center justify-center space-x-1.5 cursor-pointer text-xs font-medium text-gray-300 hover:text-white transition-all shadow-xs">
           <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -61,6 +74,20 @@ import { TokenFile, VariantGroup } from '../models/token.model';
           <span>Importar Arquivos</span>
           <input type="file" multiple accept=".json" class="hidden" (change)="onFileInput($event)">
         </label>
+        
+        <!-- Workspace Actions Popover -->
+        <div *ngIf="isWorkspaceMenuOpen()"
+             (click)="$event.stopPropagation()"
+             class="absolute top-1 right-2 bg-gray-800 border border-gray-700 rounded-lg shadow-xl py-1 z-50 text-xs w-48 animate-in fade-in zoom-in-95 duration-100">
+          <button (click)="requestWorkspaceAction('new')" class="w-full px-3 py-2 text-left hover:bg-gray-700 flex items-center space-x-2 text-gray-200 hover:text-white">
+            <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            <span>Novo Workspace</span>
+          </button>
+          <button (click)="requestWorkspaceAction('preset')" class="w-full px-3 py-2 text-left hover:bg-gray-700 flex items-center space-x-2 text-gray-200 hover:text-white">
+            <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+            <span>Carregar Workspace de Exemplo</span>
+          </button>
+        </div>
       </div>
 
       <!-- Files List Area -->
@@ -259,6 +286,33 @@ import { TokenFile, VariantGroup } from '../models/token.model';
           </ng-container>
         </div>
       </div>
+      
+      <!-- Workspace Action Confirmation Modal -->
+      <div *ngIf="pendingWorkspaceAction()" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div class="bg-gray-900 border border-gray-700 p-6 rounded-xl shadow-2xl max-w-sm w-full mx-4" (click)="$event.stopPropagation()">
+          <div class="flex items-center space-x-3 mb-4 text-orange-400">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <h3 class="text-lg font-bold text-white">Atenção</h3>
+          </div>
+          <p class="text-gray-300 text-sm mb-6 leading-relaxed">
+            Essa ação substituirá o seu Workspace atual. Deseja baixar um backup antes de prosseguir?
+          </p>
+          <div class="flex flex-col space-y-2">
+            <button (click)="confirmWorkspaceAction(true)" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center space-x-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              <span>Baixar Backup e Continuar</span>
+            </button>
+            <button (click)="confirmWorkspaceAction(false)" class="w-full py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 font-medium rounded-lg transition-colors">
+              Continuar sem Salvar
+            </button>
+            <button (click)="cancelWorkspaceAction()" class="w-full py-2 border border-gray-700 hover:bg-gray-800 text-gray-300 font-medium rounded-lg transition-colors">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
     </aside>
   `,
   styles: [`
@@ -270,6 +324,7 @@ import { TokenFile, VariantGroup } from '../models/token.model';
 })
 export class FileExplorerComponent {
   tokenService = inject(TokenService);
+  tokenState = inject(TokenStateService);
 
   isDraggingOver = signal<boolean>(false);
   editingFileName = signal<string | null>(null);
@@ -278,14 +333,33 @@ export class FileExplorerComponent {
   activeMenuFile = signal<string | null>(null);
   menuPosition = signal<{ x: number; y: number }>({ x: 0, y: 0 });
 
+  isWorkspaceMenuOpen = signal<boolean>(false);
+  pendingWorkspaceAction = signal<'new' | 'preset' | null>(null);
+
   standaloneFiles = computed(() => {
     const variantFileNames = new Set(this.tokenService.variantGroups().flatMap(g => g.files));
     return this.tokenService.files().filter(f => !variantFileNames.has(f.name));
   });
 
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      if (this.activeMenuFile()) {
+        this.activeMenuFile.set(null);
+      }
+      if (this.isWorkspaceMenuOpen()) {
+        this.isWorkspaceMenuOpen.set(false);
+      }
+      if (this.pendingWorkspaceAction()) {
+        this.cancelWorkspaceAction();
+      }
+    }
+  }
+
   @HostListener('document:click')
   onDocumentClick() {
     this.activeMenuFile.set(null);
+    this.isWorkspaceMenuOpen.set(false);
   }
 
   onFileSelect(fileName: string) {
@@ -416,6 +490,48 @@ export class FileExplorerComponent {
     const files = this.tokenService.files();
     for (const file of files) {
       this.downloadJson(file.name || 'design-tokens.json', file.content);
+    }
+  }
+
+  toggleWorkspaceMenu(event: MouseEvent) {
+    event.stopPropagation();
+    this.isWorkspaceMenuOpen.update(val => !val);
+  }
+
+  requestWorkspaceAction(action: 'new' | 'preset') {
+    this.isWorkspaceMenuOpen.set(false);
+    
+    // If the workspace is currently empty (no files), we skip confirmation
+    if (this.tokenService.files().length === 0) {
+      this.executeWorkspaceAction(action);
+      return;
+    }
+
+    // Show confirmation modal
+    this.pendingWorkspaceAction.set(action);
+  }
+
+  confirmWorkspaceAction(withBackup: boolean) {
+    const action = this.pendingWorkspaceAction();
+    if (!action) return;
+
+    if (withBackup) {
+      this.onExportAll();
+    }
+    
+    this.executeWorkspaceAction(action);
+    this.pendingWorkspaceAction.set(null);
+  }
+
+  cancelWorkspaceAction() {
+    this.pendingWorkspaceAction.set(null);
+  }
+
+  private executeWorkspaceAction(action: 'new' | 'preset') {
+    if (action === 'new') {
+      this.tokenState.initEmptyWorkspace();
+    } else if (action === 'preset') {
+      this.tokenState.loadPreset();
     }
   }
 
