@@ -1,11 +1,50 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { TokenStateService } from './token-state.service';
+import { WorkspaceStorageService } from './workspace-storage.service';
+import { TestBed } from '@angular/core/testing';
 
 describe('TokenStateService', () => {
   let service: TokenStateService;
+  let mockStorageService: any;
 
   beforeEach(() => {
-    service = new TokenStateService();
+    mockStorageService = {
+      saveWorkspace: vi.fn().mockResolvedValue(undefined),
+      loadWorkspace: vi.fn().mockResolvedValue(null)
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        TokenStateService,
+        { provide: WorkspaceStorageService, useValue: mockStorageService }
+      ]
+    });
+    service = TestBed.inject(TokenStateService);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('should auto-save to WorkspaceStorageService with debounce when a file is added', async () => {
+    vi.useFakeTimers();
+    
+    service.addFile('new-file.json', { token: { $value: 'red' } });
+    
+    // Força a execução dos effects pendentes
+    TestBed.flushEffects();
+    
+    // Nenhuma chamada deve ocorrer imediatamente (devido ao debounce)
+    expect(mockStorageService.saveWorkspace).not.toHaveBeenCalled();
+    
+    // Avança o tempo do debounce (400ms)
+    vi.advanceTimersByTime(400);
+    
+    // Aguarda a promise do saveWorkspace resolver
+    await Promise.resolve();
+    
+    expect(mockStorageService.saveWorkspace).toHaveBeenCalledTimes(1);
+    expect(service.saveStatus()).toBe('saved');
   });
 
   it('should preserve custom metadata and extension properties when updating a token value', () => {

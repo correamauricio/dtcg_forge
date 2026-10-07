@@ -1,6 +1,9 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, effect, inject } from '@angular/core';
 import { TokenFile } from '../models/token.model';
 import { TokenStateMemento } from '../models/history.model';
+import { WorkspaceStorageService } from './workspace-storage.service';
+import { Subject } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -30,8 +33,49 @@ export class TokenStateService {
   private _searchQuery = signal<string>('');
   searchQuery = this._searchQuery.asReadonly();
 
-  constructor() {
+  saveStatus = signal<'saved' | 'saving' | 'error'>('saved');
+
+  private saveSubject = new Subject<void>();
+  private initialLoadDone = false;
+
+  constructor(private workspaceStorage: WorkspaceStorageService) {
+    this.saveSubject.pipe(
+      debounceTime(400)
+    ).subscribe(() => this.performSave());
+
+    effect(() => {
+      // Registrar dependências para o effect
+      const files = this._files();
+      const activeFileName = this._activeFileName();
+      const selectedVariants = this._selectedVariants();
+      const disabledFileNames = this._disabledFileNames();
+      const selectedTokenPath = this._selectedTokenPath();
+
+      if (this.initialLoadDone) {
+        this.saveStatus.set('saving');
+        this.saveSubject.next();
+      }
+    });
+
     this.loadPreset();
+    this.initialLoadDone = true;
+  }
+
+  private async performSave() {
+    try {
+      await this.workspaceStorage.saveWorkspace({
+        files: this._files(),
+        activeFileName: this._activeFileName(),
+        selectedVariants: this._selectedVariants(),
+        disabledFileNames: Array.from(this._disabledFileNames()),
+        selectedTokenPath: this._selectedTokenPath(),
+        updatedAt: Date.now()
+      });
+      this.saveStatus.set('saved');
+    } catch (e) {
+      console.error('Failed to auto-save workspace', e);
+      this.saveStatus.set('error');
+    }
   }
 
   loadPreset() {

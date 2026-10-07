@@ -30,7 +30,8 @@ describe('FileExplorerComponent', () => {
       selectVariant: vi.fn(),
       addFile: vi.fn(),
       deleteFile: vi.fn(),
-      renameFile: vi.fn()
+      renameFile: vi.fn(),
+      saveStatus: signal('saved')
     };
 
     await TestBed.configureTestingModule({
@@ -238,5 +239,27 @@ describe('FileExplorerComponent', () => {
     const footer = el.querySelector('[data-testid="conflict-footer"]');
     expect(footer).toBeTruthy();
     expect(footer?.textContent).toContain('Token conflict: color.primary');
+  });
+
+  describe('Save Status Indicator', () => {
+    it('should display "Salvo localmente" when saveStatus is "saved"', () => {
+      tokenServiceMock.saveStatus.set('saved');
+      fixture.detectChanges();
+      
+      const el = fixture.nativeElement as HTMLElement;
+      const indicator = el.querySelector('[data-testid="save-status-indicator"]');
+      expect(indicator).toBeTruthy();
+      expect(indicator?.textContent).toContain('Salvo localmente');
+    });
+
+    it('should display "Salvando..." when saveStatus is "saving"', () => {
+      tokenServiceMock.saveStatus.set('saving');
+      fixture.detectChanges();
+      
+      const el = fixture.nativeElement as HTMLElement;
+      const indicator = el.querySelector('[data-testid="save-status-indicator"]');
+      expect(indicator).toBeTruthy();
+      expect(indicator?.textContent).toContain('Salvando...');
+    });
   });
 });

@@ -23,6 +23,7 @@ export class TokenService {
   selectedVariants = this.state.selectedVariants;
   disabledFileNames = this.state.disabledFileNames;
   searchQuery = this.state.searchQuery;
+  saveStatus = this.state.saveStatus;
 
   // Computed Values using Pure Functions (Utils)
   rawTokens = computed(() => {
