@@ -39,3 +39,7 @@ _Avoid_: Auto-color tool, theme maker
 **Primitive Token Group**:
 A Token Group where no token inside it is an alias; all tokens represent explicit, hardcoded values.
 _Avoid_: Base tokens group, hardcoded group
+
+**Workspace**:
+The complete collection of Token Files along with interface state (such as the Active File, Active Variant selections, and disabled files) managed in a user session.
+_Avoid_: Project, document, environment, session
