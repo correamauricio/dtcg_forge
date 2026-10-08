@@ -7,7 +7,7 @@ import { PreviewComponent } from './components/preview.component';
 import { WelcomeModalComponent } from './components/welcome-modal.component';
 import { ShortcutService } from './services/shortcut.service';
 import { TokenStateService } from './services/token-state.service';
-import { WorkspaceStorageService } from './services/workspace-storage.service';
+import { WorkspaceSessionService } from './services/workspace-session.service';
 
 @Component({
   selector: 'app-root',
@@ -37,7 +37,7 @@ import { WorkspaceStorageService } from './services/workspace-storage.service';
 export class App implements OnInit {
   shortcutService = inject(ShortcutService);
   tokenStateService = inject(TokenStateService);
-  workspaceStorage = inject(WorkspaceStorageService);
+  workspaceSession = inject(WorkspaceSessionService);
 
   isAppReady = signal(false);
   showWelcomeModal = signal(false);
@@ -49,21 +49,17 @@ export class App implements OnInit {
   }
 
   async ngOnInit() {
-    // Tenta inicializar a sessão a partir do sessionStorage e IndexedDB
-    const sessionStatus = await this.tokenStateService.initializeSession();
+    const sessionInit = await this.workspaceSession.initializeSession();
 
-    if (sessionStatus === 'restored') {
-      // Sessão já ativa e workspace restaurado
+    if (sessionInit.status === 'restored' && sessionInit.workspace) {
+      this.tokenStateService.restoreWorkspace(sessionInit.workspace);
       this.isAppReady.set(true);
     } else {
-      // Verifica se há algo salvo no storage mesmo sem sessão ativa
-      const savedWorkspace = await this.workspaceStorage.loadWorkspace();
-      
+      const savedWorkspace = await this.workspaceSession.loadWorkspace();
       if (savedWorkspace) {
         this.hasPreviousSession.set(true);
         this.lastUpdated.set(savedWorkspace.updatedAt);
       }
-      
       this.showWelcomeModal.set(true);
     }
   }
@@ -72,8 +68,6 @@ export class App implements OnInit {
     this.showWelcomeModal.set(false);
     
     if (action === 'continue' || (action === 'dismiss' && this.hasPreviousSession())) {
-      // Continue = carrega do BD. Como a sessão não estava ativa, temos que forçar a leitura do DB aqui 
-      // ou apenas chamar um método no TokenStateService para carregar tudo.
       this.restoreWorkspaceFromDb();
     } else if (action === 'presets' || (action === 'dismiss' && !this.hasPreviousSession())) {
       this.tokenStateService.loadPreset();
@@ -83,17 +77,13 @@ export class App implements OnInit {
       this.isAppReady.set(true);
     }
     
-    sessionStorage.setItem('dtcg_forge_session_active', 'true');
+    this.workspaceSession.markSessionActive();
   }
 
   private async restoreWorkspaceFromDb() {
-    const ws = await this.workspaceStorage.loadWorkspace();
+    const ws = await this.workspaceSession.loadWorkspace();
     if (ws) {
-      // Vamos injetar o load na service
-      // Na verdade, initializeSession já faz o restore se a session estiver ativa.
-      // Podemos apenas setar a session e chamar initializeSession novamente.
-      sessionStorage.setItem('dtcg_forge_session_active', 'true');
-      await this.tokenStateService.initializeSession();
+      this.tokenStateService.restoreWorkspace(ws);
     } else {
       this.tokenStateService.loadPreset();
     }

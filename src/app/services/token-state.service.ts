@@ -1,9 +1,7 @@
 import { Injectable, signal, effect, inject } from '@angular/core';
 import { TokenFile } from '../models/token.model';
 import { TokenStateMemento } from '../models/history.model';
-import { WorkspaceStorageService } from './workspace-storage.service';
-import { Subject } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
+import { WorkspaceSessionService } from './workspace-session.service';
 
 @Injectable({
   providedIn: 'root'
@@ -33,15 +31,11 @@ export class TokenStateService {
   private _searchQuery = signal<string>('');
   searchQuery = this._searchQuery.asReadonly();
 
-  saveStatus = signal<'saved' | 'saving' | 'error'>('saved');
-
-  private saveSubject = new Subject<void>();
+  saveStatus: any;
   private initialLoadDone = false;
 
-  constructor(private workspaceStorage: WorkspaceStorageService) {
-    this.saveSubject.pipe(
-      debounceTime(400)
-    ).subscribe(() => this.performSave());
+  constructor(private workspaceSession: WorkspaceSessionService) {
+    this.saveStatus = this.workspaceSession.saveStatus;
 
     effect(() => {
       // Registrar dependências para o effect
@@ -52,47 +46,25 @@ export class TokenStateService {
       const selectedTokenPath = this._selectedTokenPath();
 
       if (this.initialLoadDone) {
-        this.saveStatus.set('saving');
-        this.saveSubject.next();
+        this.workspaceSession.scheduleSave({
+          files,
+          activeFileName,
+          selectedVariants,
+          disabledFileNames: Array.from(disabledFileNames),
+          selectedTokenPath,
+          updatedAt: Date.now()
+        });
       }
     });
   }
 
-  async initializeSession(): Promise<'restored' | 'new'> {
-    const isSessionActive = sessionStorage.getItem('dtcg_forge_session_active');
-    
-    if (isSessionActive) {
-      const workspace = await this.workspaceStorage.loadWorkspace();
-      if (workspace) {
-        this._files.set(workspace.files);
-        this._activeFileName.set(workspace.activeFileName);
-        this._selectedTokenPath.set(workspace.selectedTokenPath);
-        this._selectedVariants.set(workspace.selectedVariants);
-        this._disabledFileNames.set(new Set(workspace.disabledFileNames));
-        
-        this.initialLoadDone = true;
-        return 'restored';
-      }
-    }
-    
-    return 'new';
-  }
-
-  private async performSave() {
-    try {
-      await this.workspaceStorage.saveWorkspace({
-        files: this._files(),
-        activeFileName: this._activeFileName(),
-        selectedVariants: this._selectedVariants(),
-        disabledFileNames: Array.from(this._disabledFileNames()),
-        selectedTokenPath: this._selectedTokenPath(),
-        updatedAt: Date.now()
-      });
-      this.saveStatus.set('saved');
-    } catch (e) {
-      console.error('Failed to auto-save workspace', e);
-      this.saveStatus.set('error');
-    }
+  restoreWorkspace(workspace: any) {
+    this._files.set(workspace.files);
+    this._activeFileName.set(workspace.activeFileName);
+    this._selectedTokenPath.set(workspace.selectedTokenPath);
+    this._selectedVariants.set(workspace.selectedVariants);
+    this._disabledFileNames.set(new Set(workspace.disabledFileNames));
+    this.initialLoadDone = true;
   }
 
   loadPreset() {

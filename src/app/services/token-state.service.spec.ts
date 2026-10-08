@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { TokenStateService } from './token-state.service';
-import { WorkspaceStorageService } from './workspace-storage.service';
+import { WorkspaceSessionService } from './workspace-session.service';
 import { TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 
 describe('TokenStateService', () => {
   let service: TokenStateService;
@@ -9,14 +10,15 @@ describe('TokenStateService', () => {
 
   beforeEach(() => {
     mockStorageService = {
-      saveWorkspace: vi.fn().mockResolvedValue(undefined),
-      loadWorkspace: vi.fn().mockResolvedValue(null)
+      scheduleSave: vi.fn(),
+      loadWorkspace: vi.fn().mockResolvedValue(null),
+      saveStatus: signal('saved')
     };
 
     TestBed.configureTestingModule({
       providers: [
         TokenStateService,
-        { provide: WorkspaceStorageService, useValue: mockStorageService }
+        { provide: WorkspaceSessionService, useValue: mockStorageService }
       ]
     });
     service = TestBed.inject(TokenStateService);
@@ -28,64 +30,13 @@ describe('TokenStateService', () => {
     vi.useRealTimers();
   });
 
-  it('should auto-save to WorkspaceStorageService with debounce when a file is added', async () => {
-    vi.useFakeTimers();
-    
+  it('should call scheduleSave on WorkspaceSessionService when a file is added', async () => {
     service.addFile('new-file.json', { token: { $value: 'red' } });
     
     // Força a execução dos effects pendentes
     TestBed.flushEffects();
     
-    // Nenhuma chamada deve ocorrer imediatamente (devido ao debounce)
-    expect(mockStorageService.saveWorkspace).not.toHaveBeenCalled();
-    
-    // Avança o tempo do debounce (400ms)
-    vi.advanceTimersByTime(400);
-    
-    // Aguarda a promise do saveWorkspace resolver
-    await Promise.resolve();
-    
-    expect(mockStorageService.saveWorkspace).toHaveBeenCalledTimes(1);
-    expect(mockStorageService.saveWorkspace).toHaveBeenCalledTimes(1);
-    expect(service.saveStatus()).toBe('saved');
-  });
-
-  describe('Session Initialization', () => {
-    it('should return "new" when dtcg_forge_session_active is not set', async () => {
-      sessionStorage.removeItem('dtcg_forge_session_active');
-      const result = await service.initializeSession();
-      expect(result).toBe('new');
-      expect(mockStorageService.loadWorkspace).not.toHaveBeenCalled();
-    });
-
-    it('should return "restored" and load workspace from storage if session flag exists', async () => {
-      sessionStorage.setItem('dtcg_forge_session_active', 'true');
-      const mockWorkspace = {
-        files: [{ name: 'test.json', content: {} }],
-        activeFileName: 'test.json',
-        selectedVariants: {},
-        disabledFileNames: [],
-        selectedTokenPath: null,
-        updatedAt: 123
-      };
-      mockStorageService.loadWorkspace.mockResolvedValueOnce(mockWorkspace);
-      
-      const result = await service.initializeSession();
-      expect(result).toBe('restored');
-      expect(mockStorageService.loadWorkspace).toHaveBeenCalledTimes(1);
-      
-      // Verify signals were updated
-      expect(service.files()).toEqual(mockWorkspace.files);
-      expect(service.activeFileName()).toBe('test.json');
-    });
-
-    it('should return "new" even if session active if storage is empty', async () => {
-      sessionStorage.setItem('dtcg_forge_session_active', 'true');
-      mockStorageService.loadWorkspace.mockResolvedValueOnce(null);
-      
-      const result = await service.initializeSession();
-      expect(result).toBe('new');
-    });
+    expect(mockStorageService.scheduleSave).toHaveBeenCalledTimes(1);
   });
 
   it('should preserve custom metadata and extension properties when updating a token value', () => {
