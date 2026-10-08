@@ -42,4 +42,7 @@ _Avoid_: Base tokens group, hardcoded group
 
 **Workspace**:
 The complete collection of Token Files along with interface state (such as the Active File, Active Variant selections, and disabled files) managed in a user session.
-_Avoid_: Project, document, environment, session
+_Avoid_: Project, document, environment
+
+**Session**:
+The browser-based persistence layer containing the user's current Workspace, providing the boundary for initializing, loading, and auto-saving state across application reloads using IndexedDB.
