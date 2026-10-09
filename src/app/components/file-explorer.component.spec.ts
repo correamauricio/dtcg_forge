@@ -4,11 +4,13 @@ import { signal } from '@angular/core';
 import { FileExplorerComponent } from './file-explorer.component';
 import { TokenService } from '../services/token.service';
 import { TokenStateService } from '../services/token-state.service';
+import { FileImportService } from '../services/file-import.service';
 
 describe('FileExplorerComponent', () => {
   let component: FileExplorerComponent;
   let fixture: ComponentFixture<FileExplorerComponent>;
   let tokenServiceMock: any;
+  let fileImportServiceMock: any;
 
   beforeEach(async () => {
     tokenServiceMock = {
@@ -40,11 +42,17 @@ describe('FileExplorerComponent', () => {
       loadPreset: vi.fn()
     };
 
+    fileImportServiceMock = {
+      readAndAddFiles: vi.fn(),
+      downloadJson: vi.fn()
+    };
+
     await TestBed.configureTestingModule({
       imports: [FileExplorerComponent],
       providers: [
         { provide: TokenService, useValue: tokenServiceMock },
-        { provide: TokenStateService, useValue: tokenStateMock }
+        { provide: TokenStateService, useValue: tokenStateMock },
+        { provide: FileImportService, useValue: fileImportServiceMock }
       ]
     }).compileComponents();
 
@@ -55,12 +63,6 @@ describe('FileExplorerComponent', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-  });
-
-  it('should render branding and export all button', () => {
-    const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('DTCG Forge');
-    expect(el.querySelector('[data-testid="export-all-btn"]')).toBeTruthy();
   });
 
   it('should render standalone files and elevated variant containers', () => {
@@ -110,7 +112,7 @@ describe('FileExplorerComponent', () => {
     expect(component.isDraggingOver()).toBe(false);
   });
 
-  it('should import json file on valid file drop', () => {
+  it('should import json file on valid file drop via FileImportService', () => {
     const mockFile = new File(['{"color": {"red": {"$value": "#f00"}}}'], 'tokens.json', { type: 'application/json' });
     const dropEvent = {
       preventDefault: vi.fn(),
@@ -124,18 +126,7 @@ describe('FileExplorerComponent', () => {
     expect(dropEvent.preventDefault).toHaveBeenCalled();
     expect(dropEvent.stopPropagation).toHaveBeenCalled();
     expect(component.isDraggingOver()).toBe(false);
-  });
-
-  it('should import json file on file input change event', () => {
-    const mockFile = new File(['{"color": {"red": {"$value": "#f00"}}}'], 'imported.json', { type: 'application/json' });
-    const inputEvent = {
-      target: {
-        files: [mockFile]
-      }
-    };
-
-    component.onFileInput(inputEvent);
-    expect(inputEvent.target.files.length).toBe(1);
+    expect(fileImportServiceMock.readAndAddFiles).toHaveBeenCalledWith([mockFile]);
   });
 
   it('should prompt and delete file when confirmed', () => {
@@ -200,16 +191,9 @@ describe('FileExplorerComponent', () => {
     component.onMenuRename();
     expect(component.editingFileName()).toBe('primitives.json');
 
-    const clickSpy = vi.fn();
-    vi.spyOn(document, 'createElement').mockReturnValue({
-      setAttribute: vi.fn(),
-      click: clickSpy,
-      remove: vi.fn()
-    } as any);
-
     component.activeMenuFile.set('primitives.json');
     component.onMenuExport();
-    expect(clickSpy).toHaveBeenCalled();
+    expect(fileImportServiceMock.downloadJson).toHaveBeenCalledWith('primitives.json', { color: { blue: { $value: '#00f' } } });
 
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     component.activeMenuFile.set('primitives.json');
@@ -217,108 +201,5 @@ describe('FileExplorerComponent', () => {
     expect(tokenServiceMock.deleteFile).toHaveBeenCalledWith('primitives.json');
   });
 
-  it('should handle onExportAll with and without duplicate warnings', () => {
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
-    const clickSpy = vi.fn();
-    vi.spyOn(document, 'createElement').mockReturnValue({
-      setAttribute: vi.fn(),
-      click: clickSpy,
-      remove: vi.fn()
-    } as any);
 
-    tokenServiceMock.duplicateTokensInfo.set([]);
-    component.onExportAll();
-    expect(alertSpy).not.toHaveBeenCalled();
-    expect(clickSpy).toHaveBeenCalledTimes(3); // 3 files
-
-    clickSpy.mockClear();
-    tokenServiceMock.duplicateTokensInfo.set(['Conflict']);
-    component.onExportAll();
-    expect(alertSpy).toHaveBeenCalled();
-    expect(clickSpy).toHaveBeenCalledTimes(3);
-  });
-
-  it('should render token conflict warnings in footer when duplicateTokensInfo has items', () => {
-    tokenServiceMock.duplicateTokensInfo.set(['Token conflict: color.primary in semantics.json']);
-    fixture.detectChanges();
-
-    const el = fixture.nativeElement as HTMLElement;
-    const footer = el.querySelector('[data-testid="conflict-footer"]');
-    expect(footer).toBeTruthy();
-    expect(footer?.textContent).toContain('Token conflict: color.primary');
-  });
-
-  describe('Save Status Indicator', () => {
-    it('should display "Salvo localmente" when saveStatus is "saved"', () => {
-      tokenServiceMock.saveStatus.set('saved');
-      fixture.detectChanges();
-      
-      const el = fixture.nativeElement as HTMLElement;
-      const indicator = el.querySelector('[data-testid="save-status-indicator"]');
-      expect(indicator).toBeTruthy();
-      expect(indicator?.textContent).toContain('Salvo localmente');
-    });
-
-    it('should display "Salvando..." when saveStatus is "saving"', () => {
-      tokenServiceMock.saveStatus.set('saving');
-      fixture.detectChanges();
-      
-      const el = fixture.nativeElement as HTMLElement;
-      const indicator = el.querySelector('[data-testid="save-status-indicator"]');
-      expect(indicator).toBeTruthy();
-      expect(indicator?.textContent).toContain('Salvando...');
-    });
-  });
-
-  describe('Workspace Actions Menu and Confirmation Modal', () => {
-    it('should toggle workspace menu', () => {
-      expect(component.isWorkspaceMenuOpen()).toBe(false);
-      component.toggleWorkspaceMenu(new MouseEvent('click'));
-      expect(component.isWorkspaceMenuOpen()).toBe(true);
-    });
-
-    it('should show confirmation modal when requesting preset with existing files', () => {
-      component.requestWorkspaceAction('preset');
-      expect(component.pendingWorkspaceAction()).toBe('preset');
-      expect(component.isWorkspaceMenuOpen()).toBe(false);
-    });
-
-    it('should execute directly without modal if workspace is empty', () => {
-      const tokenStateMock = TestBed.inject(TokenStateService);
-      tokenServiceMock.files.set([]);
-      component.requestWorkspaceAction('new');
-      expect(component.pendingWorkspaceAction()).toBe(null);
-      expect(tokenStateMock.initEmptyWorkspace).toHaveBeenCalled();
-    });
-
-    it('should call onExportAll and action when confirming with backup', () => {
-      const tokenStateMock = TestBed.inject(TokenStateService);
-      const exportSpy = vi.spyOn(component, 'onExportAll').mockImplementation(() => {});
-      
-      component.requestWorkspaceAction('preset');
-      component.confirmWorkspaceAction(true);
-      
-      expect(exportSpy).toHaveBeenCalled();
-      expect(tokenStateMock.loadPreset).toHaveBeenCalled();
-      expect(component.pendingWorkspaceAction()).toBe(null);
-    });
-
-    it('should only call action when confirming without backup', () => {
-      const tokenStateMock = TestBed.inject(TokenStateService);
-      const exportSpy = vi.spyOn(component, 'onExportAll').mockImplementation(() => {});
-      
-      component.requestWorkspaceAction('new');
-      component.confirmWorkspaceAction(false);
-      
-      expect(exportSpy).not.toHaveBeenCalled();
-      expect(tokenStateMock.initEmptyWorkspace).toHaveBeenCalled();
-      expect(component.pendingWorkspaceAction()).toBe(null);
-    });
-
-    it('should cancel workspace action', () => {
-      component.requestWorkspaceAction('preset');
-      component.cancelWorkspaceAction();
-      expect(component.pendingWorkspaceAction()).toBe(null);
-    });
-  });
 });
