@@ -1,9 +1,10 @@
 import '@angular/compiler';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { TokenService } from './services/token.service';
 import { TokenStateService } from './services/token-state.service';
 import { HistoryService } from './services/history.service';
 import { ShortcutService } from './services/shortcut.service';
+import { AppLifecycleService } from './services/app-lifecycle.service';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { WorkspaceSessionService } from './services/workspace-session.service';
@@ -51,124 +52,28 @@ describe('TokenService Variant Behavior', () => {
   });
 });
 
-describe('Session Lifecycle and Welcome Modal', () => {
-    let app: any;
-    let fixture: any;
-    let mockTokenStateService: any;
-    let mockWorkspaceSession: any;
+describe('App Component', () => {
+  it('should initialize app lifecycle on init', async () => {
+    const mockLifecycle = {
+      initializeApp: vi.fn(),
+      appState: signal('initializing'),
+      hasPreviousSession: signal(false),
+      lastUpdated: signal(null),
+      handleWelcomeAction: vi.fn()
+    };
 
-    beforeEach(async () => {
-      mockTokenStateService = {
-        loadPreset: vi.fn(),
-        initEmptyWorkspace: vi.fn(),
-        restoreWorkspace: vi.fn()
-      };
+    await TestBed.configureTestingModule({
+      imports: [App],
+      providers: [
+        { provide: AppLifecycleService, useValue: mockLifecycle },
+        { provide: ShortcutService, useValue: { init: vi.fn() } }
+      ]
+    }).compileComponents();
 
-      mockWorkspaceSession = {
-        loadWorkspace: vi.fn(),
-        initializeSession: vi.fn().mockResolvedValue({ status: 'new', workspace: null }),
-        markSessionActive: vi.fn()
-      };
-
-      await TestBed.configureTestingModule({
-        imports: [App],
-        providers: [
-          { provide: TokenStateService, useValue: mockTokenStateService },
-          { provide: WorkspaceSessionService, useValue: mockWorkspaceSession },
-          { provide: ShortcutService, useValue: { init: vi.fn() } },
-          { provide: TokenService, useValue: { 
-            activeFileName: signal('semantics.json'), 
-            flatTokens: signal([]), 
-            groupedTokens: signal({}), 
-            saveStatus: signal('saved'),
-            activeFileContent: signal(''),
-            variantGroups: signal([]),
-            isJsonEditorOpen: signal(false),
-            selectedTokenPath: signal(null),
-            fileNames: signal(['semantics.json']),
-            rawTokens: signal([]),
-            files: signal([]),
-            duplicateTokensInfo: signal({}),
-            searchQuery: signal(''),
-            filteredTokenCount: signal(0),
-            cssVariables: signal('')
-          } }
-        ]
-      }).compileComponents();
-
-      fixture = TestBed.createComponent(App);
-      app = fixture.componentInstance;
-    });
-
-    afterEach(() => {
-      sessionStorage.clear();
-      vi.clearAllMocks();
-    });
-
-    it('should show welcome modal on new session and empty storage', async () => {
-      mockWorkspaceSession.initializeSession.mockResolvedValue({ status: 'new', workspace: null });
-      mockWorkspaceSession.loadWorkspace.mockResolvedValue(null);
-
-      await app.ngOnInit();
-      
-      expect(app.showWelcomeModal()).toBe(true);
-      expect(app.hasPreviousSession()).toBe(false);
-      expect(app.isAppReady()).toBe(false);
-    });
-
-    it('should show welcome modal with "continue" option if storage has workspace but session is new', async () => {
-      mockWorkspaceSession.initializeSession.mockResolvedValue({ status: 'new', workspace: null });
-      mockWorkspaceSession.loadWorkspace.mockResolvedValue({ updatedAt: 123456 });
-
-      await app.ngOnInit();
-      
-      expect(app.showWelcomeModal()).toBe(true);
-      expect(app.hasPreviousSession()).toBe(true);
-      expect(app.lastUpdated()).toBe(123456);
-      expect(app.isAppReady()).toBe(false);
-    });
-
-    it('should bypass modal and be ready if session is restored', async () => {
-      mockWorkspaceSession.initializeSession.mockResolvedValue({ status: 'restored', workspace: { files: [] } });
-
-      await app.ngOnInit();
-      
-      expect(app.showWelcomeModal()).toBe(false);
-      expect(app.isAppReady()).toBe(true);
-      expect(mockTokenStateService.restoreWorkspace).toHaveBeenCalledWith({ files: [] });
-    });
-
-    it('should handle "presets" action from modal', () => {
-      app.handleModalAction('presets');
-      
-      expect(mockTokenStateService.loadPreset).toHaveBeenCalled();
-      expect(mockWorkspaceSession.markSessionActive).toHaveBeenCalled();
-      expect(app.showWelcomeModal()).toBe(false);
-      expect(app.isAppReady()).toBe(true);
-    });
-
-    it('should handle "empty" action from modal', () => {
-      app.handleModalAction('empty');
-      
-      expect(mockTokenStateService.initEmptyWorkspace).toHaveBeenCalled();
-      expect(mockWorkspaceSession.markSessionActive).toHaveBeenCalled();
-      expect(app.showWelcomeModal()).toBe(false);
-      expect(app.isAppReady()).toBe(true);
-    });
-
-    it.skip('should handle "continue" action from modal', async () => {
-      app.ngOnInit = vi.fn(); // Prevent automatic execution from interfering
-      mockWorkspaceSession.loadWorkspace.mockResolvedValue({ files: [] });
-      
-      // Avoid calling ngOnInit to prevent race conditions with its async state setting
-      app.showWelcomeModal.set(true); 
-
-      app.handleModalAction('continue');
-      await new Promise(resolve => setTimeout(resolve, 0));
-      
-      expect(mockWorkspaceSession.markSessionActive).toHaveBeenCalled();
-      expect(mockTokenStateService.restoreWorkspace).toHaveBeenCalledWith({ files: [] });
-      expect(app.showWelcomeModal()).toBe(false);
-      expect(app.isAppReady()).toBe(true);
-    });
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    
+    app.ngOnInit();
+    expect(mockLifecycle.initializeApp).toHaveBeenCalled();
+  });
 });
