@@ -1,4 +1,4 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WorkspaceSessionService } from './workspace-session.service';
 import { WorkspaceState } from '../models/workspace.model';
@@ -72,7 +72,7 @@ describe('WorkspaceSessionService', () => {
   it('should initialize and load workspace if session is active', async () => {
     vi.mocked(sessionStorage.getItem).mockReturnValue('true');
     
-    const mockWorkspace: WorkspaceState = { files: [], variantGroups: [], updatedAt: 123 };
+    const mockWorkspace = { files: [], updatedAt: 123 } as unknown as WorkspaceState;
     
     // Override indexedDB mock specific for this test to return data
     vi.mocked(indexedDB.open).mockImplementation(() => {
@@ -98,13 +98,13 @@ describe('WorkspaceSessionService', () => {
     expect(sessionStorage.setItem).toHaveBeenCalledWith('dtcg_forge_session_active', 'true');
   });
 
-  it('should schedule save using debounce and update saveStatus', fakeAsync(() => {
-    const mockWorkspace: WorkspaceState = { files: [], variantGroups: [], updatedAt: 123 };
+  it('should schedule save using debounce and update saveStatus', async () => {
+    const mockWorkspace = { files: [], updatedAt: 123 } as unknown as WorkspaceState;
     
     // Mocks for successful DB put
     mockObjectStore.put.mockImplementation(() => {
       const putReq = { onsuccess: null as any };
-      setTimeout(() => putReq.onsuccess({}), 0);
+      setTimeout(() => { if (putReq.onsuccess) putReq.onsuccess({}); }, 0);
       return putReq;
     });
 
@@ -114,36 +114,32 @@ describe('WorkspaceSessionService', () => {
     expect(service.saveStatus()).toBe('saving');
     
     // Advance time to pass the 400ms debounce
-    tick(400);
+    await new Promise(resolve => setTimeout(resolve, 450));
     
-    // Microtasks for promises inside performSave
-    tick();
-
     expect(mockObjectStore.put).toHaveBeenCalledWith(mockWorkspace, 'current');
     expect(service.saveStatus()).toBe('saved');
-  }));
+  });
 
-  it('should set saveStatus to error if DB put fails', fakeAsync(() => {
-    const mockWorkspace: WorkspaceState = { files: [], variantGroups: [], updatedAt: 123 };
+  it('should set saveStatus to error if DB put fails', async () => {
+    const mockWorkspace = { files: [], updatedAt: 123 } as unknown as WorkspaceState;
     
     // Mocks for failed DB put
     mockObjectStore.put.mockImplementation(() => {
       const putReq = { onerror: null as any, error: new Error('DB Error') };
-      setTimeout(() => putReq.onerror({}), 0);
+      setTimeout(() => { if (putReq.onerror) putReq.onerror({}); }, 0);
       return putReq;
     });
 
     service.scheduleSave(mockWorkspace);
-    tick(400); // Wait for debounce
-    tick();    // Resolve promises
+    await new Promise(resolve => setTimeout(resolve, 450));
 
     expect(service.saveStatus()).toBe('error');
-  }));
+  });
 
   it('should handle clearing the session completely', async () => {
     mockObjectStore.delete.mockImplementation(() => {
       const delReq = { onsuccess: null as any };
-      setTimeout(() => delReq.onsuccess({}), 0);
+      setTimeout(() => { if (delReq.onsuccess) delReq.onsuccess({}); }, 0);
       return delReq;
     });
 
